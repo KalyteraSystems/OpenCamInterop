@@ -23,4 +23,6 @@ if (result.IsSuccess)
 
 Inputs are capped at 1 MiB. Structured CloudEvents JSON is capped at 4 MiB and batches at 256 events. Frigate output uses an explicit field allowlist, but retained camera, object, label, and zone identifiers are not automatically anonymous. Generic ONVIF item values are always replaced with `[redacted]`; recognized source identifiers are represented only by stable opaque hashes. Caller-provided `source` values are emitted verbatim, and hashes support correlation rather than anonymity for low-entropy identifiers.
 
+The offline [.NET 10 EventLab CLI](tools/OpenCamInterop.Tool/README.md) can inspect one payload, verify the versioned fixture manifest and generated compatibility matrix, or replay the corpus as timed structured-CloudEvents NDJSON. It contains no MQTT, SOAP, discovery, or other network client.
+
 The package includes the v1 JSON Schemas. See the repository's [OpenCamInterop design and contribution guide](https://github.com/KalyteraSystems/IPCamLapse/blob/main/docs/OPEN_CAM_INTEROP.md) for the complete contract, privacy model, and fixture workflow.

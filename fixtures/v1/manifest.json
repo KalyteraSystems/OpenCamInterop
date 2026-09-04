@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "maxPayloadBytes": 1048576,
+  "cases": [
+    {
+      "id": "frigate.object-new.detected",
+      "adapter": "frigate",
+      "payload": "frigate/object-new.json",
+      "source": "urn:opencaminterop:fixture:frigate",
+      "channel": "frigate/events",
+      "contentType": "application/json; charset=utf-8",
+      "receivedAt": "2026-09-04T10:30:00Z",
+      "expectedEventTypes": [
+        "com.kalyterasystems.opencaminterop.object.detected.v1"
+      ],
+      "note": "Synthetic object lifecycle shape with deliberately fake sentinels; private native fields are omitted from normalized output."
+    },
+    {
+      "id": "frigate.object-new.unsupported-channel",
+      "adapter": "frigate",
+      "payload": "frigate/object-new.json",
+      "source": "urn:opencaminterop:fixture:frigate",
+      "channel": "other/events",
+      "contentType": "application/json; charset=utf-8",
+      "receivedAt": "2026-09-04T10:30:00Z",
+      "expectedDiagnosticCode": "frigate.channel.unsupported",
+      "note": "Reuses the synthetic payload to verify channel rejection before parsing; all identifiers remain fake sentinels."
+    },
+    {
+      "id": "onvif.cell-motion-changed",
+      "adapter": "onvif",
+      "payload": "onvif/cell-motion-changed.xml",
+      "source": "urn:opencaminterop:fixture:onvif",
+      "channel": "pullpoint/messages",
+      "contentType": "application/soap+xml; charset=utf-8",
+      "receivedAt": "2026-09-04T10:30:00Z",
+      "expectedEventTypes": [
+        "com.kalyterasystems.opencaminterop.signal.changed.v1"
+      ],
+      "note": "Synthetic standard-topic motion change; source identifiers are synthetic and normalized to opaque hashes."
+    },
+    {
+      "id": "onvif.pullpoint-region-motion",
+      "adapter": "onvif",
+      "payload": "onvif/pullpoint-region-motion.xml",
+      "source": "urn:opencaminterop:fixture:onvif",
+      "channel": "pullpoint/messages",
+      "contentType": "application/soap+xml; charset=utf-8",
+      "receivedAt": "2026-09-04T10:30:00Z",
+      "expectedEventTypes": [
+        "com.kalyterasystems.opencaminterop.signal.changed.v1"
+      ],
+      "note": "Synthetic PullPoint region motion; source and rule identifiers are synthetic and normalized to opaque hashes."
+    }
+  ]
+}

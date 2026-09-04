@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:opencaminterop:schema:camera-signal-event:1",
+  "title": "OpenCamInterop camera signal event data",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["adapter", "cameraId", "signal", "active", "propertyOperation"],
+  "properties": {
+    "adapter": { "type": "string", "minLength": 1 },
+    "cameraId": { "type": "string", "minLength": 1 },
+    "ruleId": { "type": "string", "minLength": 1 },
+    "signal": { "type": "string", "minLength": 1 },
+    "active": { "type": "boolean" },
+    "propertyOperation": { "const": "changed" }
+  }
+}

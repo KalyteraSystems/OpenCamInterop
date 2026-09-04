@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:opencaminterop:schema:onvif-notification-event:1",
+  "title": "OpenCamInterop generic ONVIF notification data",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "adapter",
+    "topicNamespace",
+    "topic",
+    "sourceItems",
+    "keyItems",
+    "dataItems"
+  ],
+  "properties": {
+    "adapter": { "type": "string", "minLength": 1 },
+    "topicNamespace": { "type": "string" },
+    "topic": { "type": "string", "minLength": 1 },
+    "propertyOperation": {
+      "type": "string",
+      "enum": ["initialized", "changed", "deleted"]
+    },
+    "sourceItems": { "$ref": "#/$defs/simpleItems" },
+    "keyItems": { "$ref": "#/$defs/simpleItems" },
+    "dataItems": { "$ref": "#/$defs/simpleItems" }
+  },
+  "$defs": {
+    "simpleItems": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "value"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "value": { "const": "[redacted]" }
+        }
+      }
+    }
+  }
+}

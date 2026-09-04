@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:opencaminterop:schema:fixture-manifest:1",
+  "title": "OpenCamInterop fixture manifest v1",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "maxPayloadBytes",
+    "cases"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "maxPayloadBytes": {
+      "const": 1048576
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "case": {
+      "type": "object",
+      "required": [
+        "id",
+        "adapter",
+        "payload",
+        "source",
+        "channel",
+        "contentType",
+        "receivedAt",
+        "note"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$"
+        },
+        "adapter": {
+          "enum": [
+            "frigate",
+            "onvif"
+          ]
+        },
+        "payload": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "^(?:frigate/[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*\\.json|onvif/[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*\\.xml)$"
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048,
+          "pattern": "^urn:[^\\s?#]+$"
+        },
+        "channel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "contentType": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "receivedAt": {
+          "type": "string",
+          "format": "date-time",
+          "maxLength": 256,
+          "pattern": "Z$"
+        },
+        "expectedEventTypes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "com.kalyterasystems.opencaminterop.object.detected.v1",
+              "com.kalyterasystems.opencaminterop.object.updated.v1",
+              "com.kalyterasystems.opencaminterop.object.ended.v1",
+              "com.kalyterasystems.opencaminterop.signal.changed.v1",
+              "com.kalyterasystems.opencaminterop.onvif.notification.v1"
+            ]
+          }
+        },
+        "expectedDiagnosticCode": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "expectedEventTypes"
+          ],
+          "not": {
+            "required": [
+              "expectedDiagnosticCode"
+            ]
+          }
+        },
+        {
+          "required": [
+            "expectedDiagnosticCode"
+          ],
+          "not": {
+            "required": [
+              "expectedEventTypes"
+            ]
+          }
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "adapter": {
+                "const": "frigate"
+              }
+            },
+            "required": [
+              "adapter"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "pattern": "^frigate/.+\\.json$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter": {
+                "const": "onvif"
+              }
+            },
+            "required": [
+              "adapter"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "pattern": "^onvif/.+\\.xml$"
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  }
+}
