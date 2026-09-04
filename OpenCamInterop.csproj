@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackageId>OpenCamInterop</PackageId>
+    <Version>0.1.0-alpha.1</Version>
+    <Authors>Kalytera Systems contributors</Authors>
+    <Description>CloudEvents-compatible camera event models and safe adapters for local interoperability.</Description>
+    <RepositoryUrl>https://github.com/KalyteraSystems/IPCamLapse</RepositoryUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>camera;cloudevents;frigate;onvif;interoperability</PackageTags>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CloudNative.CloudEvents.SystemTextJson" Version="2.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md" Pack="true" PackagePath="/" />
+    <None Include="..\schemas\v1\*.schema.json"
+          Link="schemas\v1\%(Filename)%(Extension)"
+          Pack="true"
+          PackagePath="schemas/v1" />
+  </ItemGroup>
+
+</Project>

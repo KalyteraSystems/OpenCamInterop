@@ -1,0 +1,17 @@
+{
+  "type": "new",
+  "after": {
+    "id": "track-42",
+    "camera": "front door",
+    "label": "person",
+    "start_time": 1725445800.25,
+    "frame_time": 1725445802.5,
+    "end_time": null,
+    "score": 0.82,
+    "top_score": 0.91,
+    "current_zones": ["porch"],
+    "entered_zones": ["driveway", "porch"],
+    "sub_label": "private-person",
+    "recognized_license_plate": "TEST-PLATE"
+  }
+}
