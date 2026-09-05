@@ -7,7 +7,35 @@ OpenCamInterop turns sanitized Frigate and ONVIF event quirks into deterministic
 
 The project opens no network connections, discovers no devices, stores no credentials, and processes no camera images or video. Contributors can reproduce an interoperability behavior without owning the original hardware or sharing a raw private capture.
 
-## Try the executable corpus
+## Try a release bundle without installing .NET
+
+Download and extract the archive for your platform from
+[`v0.1.0-alpha.1`](https://github.com/KalyteraSystems/OpenCamInterop/releases/tag/v0.1.0-alpha.1).
+Each self-contained bundle includes EventLab, the synthetic fixture corpus, schemas,
+license, and notices. Compare the archive's SHA-256 digest with the digest shown on
+the GitHub release before extracting it.
+
+From an extracted Windows x64 bundle:
+
+```powershell
+.\opencaminterop.exe verify --manifest fixtures\v1\manifest.json
+.\opencaminterop.exe replay --manifest fixtures\v1\manifest.json --no-wait
+```
+
+From an extracted Linux x64 or ARM64 bundle:
+
+```bash
+chmod +x ./opencaminterop
+./opencaminterop verify --manifest fixtures/v1/manifest.json
+./opencaminterop replay --manifest fixtures/v1/manifest.json --no-wait
+```
+
+The verified alpha corpus produces three normalized events from four synthetic
+cases. A successful run is evidence that the bundled cases behave deterministically
+on that platform, not evidence of compatibility with a physical camera or private
+installation.
+
+## Build and test from source
 
 Requirements: [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
 
@@ -35,6 +63,14 @@ Use `--help` for the complete command and exit-code contract. The [EventLab guid
 ## Contribute one real behavior
 
 The most valuable contribution is one previously uncovered behavior reduced to a small synthetic payload and an executable expectation. Namespace variation, reconnect duplication, unusual ordering, missing fields, property operations, and bounded vendor extensions are all useful when they produce a distinct tested result.
+
+You do not need to write code or publish a payload to start. Use the
+[fixture-behavior form](https://github.com/KalyteraSystems/OpenCamInterop/issues/new?template=fixture_behavior.yml)
+to describe a Frigate or ONVIF quirk safely. If the event family is not supported,
+use the
+[input-family proposal](https://github.com/KalyteraSystems/OpenCamInterop/issues/new?template=input_family.yml)
+to identify its public documentation, smallest useful scope, and a behavior that
+would distinguish it from the current adapters.
 
 Never submit a raw device export. Remove credentials, routable addresses, serial numbers, people, faces, plates, snapshots, thumbnails, installation URLs, and local paths before opening a pull request. Start with the [fixture guide](fixtures/v1/README.md) and [contribution guide](CONTRIBUTING.md).
 
