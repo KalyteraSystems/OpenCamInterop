@@ -13,8 +13,10 @@ This page keeps project health separate from promotional activity. Counts descri
 | Independent downstream consumers | 0 | A non-Kalytera repository that runs or references OpenCamInterop in real CI or code |
 | Non-maintainer behavior contributors | 0 | A unique person outside maintenance whose substantive behavior case was merged |
 | First-party consumers | 1 | IPCamLapse uses the library source directly |
-| Standalone releases | 0 | A tagged release in the standalone repository |
+| Standalone releases | 1 | A tagged release in the standalone repository |
 | Known privacy incidents | 0 | A fixture or report requiring removal of private data |
+
+Release evidence: [`v0.1.0-alpha.1`](https://github.com/KalyteraSystems/OpenCamInterop/releases/tag/v0.1.0-alpha.1).
 
 All current fixtures are synthetic. They establish parser and contract behavior only, not physical-device coverage, firmware support, vendor compatibility, certification, or adoption.
 
