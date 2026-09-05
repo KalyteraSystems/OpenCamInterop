@@ -1,0 +1,46 @@
+name: Bug report
+description: Report reproducible offline parser, verifier, replay, or contract behavior.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not include raw private captures, credentials, addresses, serial numbers, people, plates, media, URLs, or paths. Use the private security-reporting link for sensitive defects.
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: v0.1.0-alpha.1 or commit SHA
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Reproduction and observed behavior
+      description: Provide minimal steps and sanitized inline data only when it is safe to publish.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Windows
+        - Linux x64
+        - Linux ARM64
+        - Other
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy confirmation
+      options:
+        - label: I have not included private device data, credentials, addresses, serial numbers, people, plates, media, installation URLs, or local paths.
+          required: true

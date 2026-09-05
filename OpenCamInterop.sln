@@ -1,0 +1,40 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenCamInterop", "OpenCamInterop.csproj", "{F8E99783-0CFB-4778-A2F6-953386E494F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenCamInterop.Tests", "tests\OpenCamInterop.Tests\OpenCamInterop.Tests.csproj", "{72C270CB-3C29-4DE5-B767-2F7FA59D43EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenCamInterop.Tool", "tools\OpenCamInterop.Tool\OpenCamInterop.Tool.csproj", "{4E0CCFE5-F60D-4FDB-9476-651936CDFAB0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenCamInterop.Tool.Tests", "tests\OpenCamInterop.Tool.Tests\OpenCamInterop.Tool.Tests.csproj", "{A459618B-323B-45A4-B82F-9BD80411421E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F8E99783-0CFB-4778-A2F6-953386E494F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8E99783-0CFB-4778-A2F6-953386E494F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8E99783-0CFB-4778-A2F6-953386E494F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8E99783-0CFB-4778-A2F6-953386E494F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72C270CB-3C29-4DE5-B767-2F7FA59D43EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72C270CB-3C29-4DE5-B767-2F7FA59D43EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72C270CB-3C29-4DE5-B767-2F7FA59D43EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72C270CB-3C29-4DE5-B767-2F7FA59D43EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E0CCFE5-F60D-4FDB-9476-651936CDFAB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E0CCFE5-F60D-4FDB-9476-651936CDFAB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E0CCFE5-F60D-4FDB-9476-651936CDFAB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E0CCFE5-F60D-4FDB-9476-651936CDFAB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A459618B-323B-45A4-B82F-9BD80411421E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A459618B-323B-45A4-B82F-9BD80411421E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A459618B-323B-45A4-B82F-9BD80411421E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A459618B-323B-45A4-B82F-9BD80411421E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

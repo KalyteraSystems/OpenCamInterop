@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore locked dependencies
+        run: dotnet restore OpenCamInterop.sln --locked-mode
+
+      - name: Build
+        run: dotnet build OpenCamInterop.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test OpenCamInterop.sln --configuration Release --no-build --no-restore --verbosity normal
+
+      - name: Verify executable corpus
+        run: dotnet run --project tools/OpenCamInterop.Tool --configuration Release --no-build -- verify --manifest fixtures/v1/manifest.json
+
+      - name: Pack library without publishing
+        run: dotnet pack OpenCamInterop.csproj --configuration Release --no-build --no-restore --output artifacts/package
+
+      - name: Verify formatting
+        run: dotnet format OpenCamInterop.sln --verify-no-changes --no-restore
+
+      - name: Audit NuGet dependencies
+        run: dotnet list OpenCamInterop.sln package --vulnerable --include-transitive

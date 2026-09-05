@@ -1,0 +1,47 @@
+name: Propose a fixture behavior
+description: Suggest one distinct Frigate or ONVIF behavior for a sanitized executable case.
+title: "[Fixture]: "
+labels: [fixture, help wanted]
+body:
+  - type: markdown
+    attributes:
+      value: Describe the behavior without uploading a raw event. A maintainer can help design a synthetic reproduction. Device and vendor names are optional and do not become compatibility claims.
+  - type: dropdown
+    id: adapter
+    attributes:
+      label: Input family
+      options:
+        - Frigate
+        - ONVIF
+    validations:
+      required: true
+  - type: textarea
+    id: distinction
+    attributes:
+      label: Distinct behavior
+      description: What namespace, ordering, lifecycle, missing field, duplicate, property operation, or extension differs from existing cases?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected normalized result
+      description: State the expected CloudEvent type/data behavior or stable diagnostic.
+    validations:
+      required: true
+  - type: textarea
+    id: sanitization
+    attributes:
+      label: Synthetic reproduction plan
+      description: Explain how the behavior can be recreated without copying private installation data.
+    validations:
+      required: true
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Evidence boundary
+      options:
+        - label: I will not upload a raw device export or private data.
+          required: true
+        - label: I understand that a model/vendor name or matrix row alone is not an executable compatibility case.
+          required: true

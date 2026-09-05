@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using OpenCamInterop;
 using OpenCamInterop.EventLab;
 
 namespace OpenCamInterop.Tool.Tests;
