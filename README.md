@@ -97,4 +97,4 @@ dotnet format OpenCamInterop.sln --verify-no-changes --no-restore
 dotnet list OpenCamInterop.sln package --vulnerable --include-transitive
 ```
 
-CI runs on Windows and Ubuntu. Security issues should be reported privately as described in [SECURITY.md](SECURITY.md).
+CI runs on Windows and Ubuntu. Security issues should be reported privately as described in [SECURITY.md](SECURITY.md). The [project history](docs/HISTORY.md) records the verified extraction point and the original IPCamLapse pull requests.
