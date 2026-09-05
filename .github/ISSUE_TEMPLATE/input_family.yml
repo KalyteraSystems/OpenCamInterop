@@ -1,0 +1,67 @@
+name: Propose an input family
+description: Suggest a documented camera-event format beyond the current Frigate and ONVIF adapters.
+title: "[Input family]: "
+labels: [enhancement, help wanted]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Propose the smallest useful offline adapter scope. Link only to public
+        documentation or public source code. Do not attach raw events, exports,
+        credentials, media, or details from a private installation.
+  - type: input
+    id: family
+    attributes:
+      label: Project, protocol, or event family
+      description: Name the event-producing system or documented protocol.
+      placeholder: Example camera-event system
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: Public technical references
+      description: Link to the canonical event documentation, schema, or relevant public source code.
+      placeholder: One URL per line, with a short note explaining what it defines.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Distinct behavior to make executable
+      description: >-
+        Describe one event lifecycle, ordering rule, field variation, duplicate,
+        or diagnostic that a synthetic fixture should verify.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Smallest useful first scope
+      description: >-
+        Identify the minimum message type and normalized result needed for a first
+        adapter. Avoid proposing an entire product integration at once.
+    validations:
+      required: true
+  - type: dropdown
+    id: participation
+    attributes:
+      label: How could you participate?
+      options:
+        - I can contribute code and tests
+        - I can review or test a synthetic implementation
+        - I can clarify the public event behavior
+        - I am proposing the use case only
+    validations:
+      required: true
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Evidence and privacy boundary
+      options:
+        - label: I have searched existing issues and adapters for the same event family.
+          required: true
+        - label: I have not included private payloads, credentials, addresses, device identifiers, people, media, installation URLs, or local paths.
+          required: true
+        - label: I understand that accepting a proposal would not establish device compatibility, endorsement, certification, or external adoption.
+          required: true

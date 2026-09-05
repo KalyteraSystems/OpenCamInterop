@@ -2,7 +2,13 @@
 
 ## Unreleased
 
-No unreleased changes yet.
+### Added
+
+- A structured issue form for proposing documented camera-event input families beyond Frigate and ONVIF
+
+### Changed
+
+- The README now documents a tested, no-SDK path for verifying and replaying the self-contained release corpus
 
 ## 0.1.0-alpha.1 - 2026-09-05
 
