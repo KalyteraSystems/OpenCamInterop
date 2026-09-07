@@ -109,7 +109,7 @@
       "opencaminterop.tool": {
         "type": "Project",
         "dependencies": {
-          "OpenCamInterop": "[0.1.0-alpha.1, )"
+          "OpenCamInterop": "[0.1.0-alpha.2, )"
         }
       }
     }

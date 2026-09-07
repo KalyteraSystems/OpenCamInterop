@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.2 - 2026-09-07
+
 ### Added
 
 - A structured issue form for proposing documented camera-event input families beyond Frigate and ONVIF

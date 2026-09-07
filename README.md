@@ -10,7 +10,7 @@ The project opens no network connections, discovers no devices, stores no creden
 ## Try a release bundle without installing .NET
 
 Download and extract the archive for your platform from
-[`v0.1.0-alpha.1`](https://github.com/KalyteraSystems/OpenCamInterop/releases/tag/v0.1.0-alpha.1).
+[`v0.1.0-alpha.2`](https://github.com/KalyteraSystems/OpenCamInterop/releases/tag/v0.1.0-alpha.2).
 Each self-contained bundle includes EventLab, the synthetic fixture corpus, schemas,
 license, and notices. Compare the archive's SHA-256 digest with the digest shown on
 the GitHub release before extracting it.
@@ -30,7 +30,7 @@ chmod +x ./opencaminterop
 ./opencaminterop replay --manifest fixtures/v1/manifest.json --no-wait
 ```
 
-The verified alpha corpus produces three normalized events from four synthetic
+The verified alpha corpus produces four normalized events from five synthetic
 cases. A successful run is evidence that the bundled cases behave deterministically
 on that platform, not evidence of compatibility with a physical camera or private
 installation.
