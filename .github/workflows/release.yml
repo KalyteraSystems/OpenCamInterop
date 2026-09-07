@@ -61,17 +61,17 @@ jobs:
       - name: Archive Windows CLI
         if: matrix.archive == 'zip'
         shell: pwsh
-        run: Compress-Archive -Path "artifacts/${{ matrix.rid }}/*" -DestinationPath "artifacts/opencaminterop-${{ matrix.rid }}.zip"
+        run: Compress-Archive -Path "artifacts/${{ matrix.rid }}/*" -DestinationPath "artifacts/opencaminterop-${{ github.ref_name }}-${{ matrix.rid }}.zip"
 
       - name: Archive Linux CLI
         if: matrix.archive == 'tar'
         shell: bash
-        run: tar -C "artifacts/${{ matrix.rid }}" -czf "artifacts/opencaminterop-${{ matrix.rid }}.tar.gz" .
+        run: tar -C "artifacts/${{ matrix.rid }}" -czf "artifacts/opencaminterop-${{ github.ref_name }}-${{ matrix.rid }}.tar.gz" .
 
       - uses: actions/upload-artifact@v7
         with:
           name: opencaminterop-${{ matrix.rid }}
-          path: artifacts/opencaminterop-${{ matrix.rid }}.*
+          path: artifacts/opencaminterop-${{ github.ref_name }}-${{ matrix.rid }}.*
           if-no-files-found: error
 
   release:
@@ -92,13 +92,23 @@ jobs:
           path: release
           merge-multiple: true
 
-      - name: Create GitHub prerelease
+      - name: Create draft prerelease
         env:
           GH_TOKEN: ${{ github.token }}
         run: >-
           gh release create "${GITHUB_REF_NAME}"
-          release/*
           --verify-tag
+          --draft
           --prerelease
           --generate-notes
           --title "OpenCamInterop ${GITHUB_REF_NAME}"
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF_NAME}" release/*
+
+      - name: Publish prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "${GITHUB_REF_NAME}" --draft=false --prerelease
