@@ -9,6 +9,7 @@ OpenCamInterop is an experimental, transport-free normalization layer for camera
 | Frigate `new` | `com.kalyterasystems.opencaminterop.object.detected.v1` | `urn:opencaminterop:schema:camera-object-event:1` |
 | Frigate `update` | `com.kalyterasystems.opencaminterop.object.updated.v1` | `urn:opencaminterop:schema:camera-object-event:1` |
 | Frigate `end` | `com.kalyterasystems.opencaminterop.object.ended.v1` | `urn:opencaminterop:schema:camera-object-event:1` |
+| Scrypted tracked `ObjectsDetected` entry | `com.kalyterasystems.opencaminterop.object.observed.v1` | `urn:opencaminterop:schema:camera-object-observation-event:1` |
 | Canonical ONVIF motion `Changed` | `com.kalyterasystems.opencaminterop.signal.changed.v1` | `urn:opencaminterop:schema:camera-signal-event:1` |
 | Other ONVIF notification | `com.kalyterasystems.opencaminterop.onvif.notification.v1` | `urn:opencaminterop:schema:onvif-notification-event:1` |
 
@@ -21,6 +22,7 @@ Consumers must treat `(source, id)` as the uniqueness pair.
 - A byte-for-byte Frigate redelivery on the same topic receives the same ID.
 - An ONVIF ID hashes one normalized notification—topic, dialect, occurrence time, operation, and ordered items—so SOAP wrapper formatting and batch position do not change identity.
 - Frigate occurrence time is `end_time` for `end`, otherwise `frame_time`, with `start_time` as a deterministic fallback.
+- Scrypted is observation-only: caller-provided camera identity plus required native object ids distinguish objects; exact payload redelivery is stable, and `timestamp` is required as an integer Unix-millisecond value rather than falling back to delivery time.
 - ONVIF requires a valid explicitly zoned `UtcTime`; malformed occurrence times are not silently replaced with delivery time.
 
 Only a motion topic in the standard ONVIF topic namespace with a recognized Concrete or ConcreteSet dialect and the `Changed` property operation is promoted to `signal.changed.v1`. Synchronization operations such as `Initialized` and `Deleted` remain generic notifications.
@@ -43,12 +45,14 @@ Machine-readable event output and generated Markdown use stdout. Human status, w
 
 ## Non-goals
 
-The v1 contract contains no MQTT client, ONVIF subscription client, camera discovery, dynamic plug-in loading, credential store, image handling, video handling, or network output. It is not a complete ontology, device certification, vendor support statement, or ONVIF conformance suite.
+The v1 contract contains no MQTT client, Scrypted client, ONVIF subscription client, camera discovery, dynamic plug-in loading, credential store, image handling, video handling, or network output. It is not a complete ontology, device certification, vendor support statement, or ONVIF conformance suite. Scrypted `ObjectsDetected` is intentionally modeled as an observation, not guessed into a new/update/end lifecycle; see [the evidence boundary](SCRYPTED.md).
 
 ## Protocol references
 
 - [CloudEvents specification and JSON format](https://github.com/cloudevents/spec)
 - [Official CloudEvents C# SDK](https://github.com/cloudevents/sdk-csharp)
 - [Frigate MQTT event documentation](https://docs.frigate.video/integrations/mqtt/)
+- [Scrypted event and object-detection types](https://github.com/koush/scrypted/blob/d728c4ab7d62d698fdf0ab4a0428df964bb1b067/sdk/types/src/types.input.ts#L83-L91)
+- [Scrypted MQTT event publication](https://github.com/koush/scrypted/blob/d728c4ab7d62d698fdf0ab4a0428df964bb1b067/plugins/mqtt/src/main.ts#L178-L194)
 - [ONVIF network interface specifications](https://www.onvif.org/profiles/specifications/)
 - [OASIS WS-Topics 1.3](https://docs.oasis-open.org/wsn/wsn-ws_topics-1.3-spec-os.htm)

@@ -19,6 +19,7 @@ internal sealed record FixtureCase(
     string Channel,
     string ContentType,
     DateTimeOffset ReceivedAt,
+    string? CameraId,
     IReadOnlyList<string>? ExpectedEventTypes,
     string? ExpectedDiagnosticCode,
     string Note);
@@ -46,6 +47,7 @@ internal static class FixtureManifestLoader
         CameraEventTypes.ObjectDetected,
         CameraEventTypes.ObjectUpdated,
         CameraEventTypes.ObjectEnded,
+        CameraEventTypes.ObjectObserved,
         CameraEventTypes.SignalChanged,
         CameraEventTypes.OnvifNotification
     };
@@ -107,8 +109,8 @@ internal static class FixtureManifestLoader
             ValidateToken(item.Id, "manifest.case-id", "case id");
             if (!ids.Add(item.Id!))
                 throw new EventLabInputException("manifest.case-id", "Fixture case ids must be unique.");
-            if (item.Adapter is not ("frigate" or "onvif"))
-                throw new EventLabInputException("manifest.adapter", "A fixture adapter must be frigate or onvif.");
+            if (item.Adapter is not ("frigate" or "onvif" or "scrypted"))
+                throw new EventLabInputException("manifest.adapter", "A fixture adapter must be frigate, onvif, or scrypted.");
 
             ValidatePayloadConvention(item.Adapter, item.Payload!);
             string payloadPath;
@@ -154,6 +156,19 @@ internal static class FixtureManifestLoader
                 throw new EventLabInputException("manifest.received-at", "Fixture receivedAt values must be nondecreasing.");
             previousReceivedAt = receivedAt;
 
+            string? cameraId = null;
+            if (item.Adapter == "scrypted")
+            {
+                ValidateText(item.CameraId, 512, "manifest.camera-id", "fixture cameraId");
+                cameraId = item.CameraId;
+            }
+            else if (item.CameraId is not null)
+            {
+                throw new EventLabInputException(
+                    "manifest.camera-id",
+                    "cameraId is supported only by the Scrypted fixture adapter.");
+            }
+
             var hasEventTypes = item.ExpectedEventTypes is not null;
             var hasDiagnostic = item.ExpectedDiagnosticCode is not null;
             if (hasEventTypes == hasDiagnostic)
@@ -190,6 +205,7 @@ internal static class FixtureManifestLoader
                 item.Channel!,
                 item.ContentType!,
                 receivedAt,
+                cameraId,
                 expectedEventTypes,
                 item.ExpectedDiagnosticCode,
                 item.Note!));
@@ -229,6 +245,13 @@ internal static class FixtureManifestLoader
         {
             if (item.ValueKind != JsonValueKind.Object || required.Any(name => !item.TryGetProperty(name, out _)))
                 throw new EventLabInputException("manifest.invalid", "The fixture manifest is not valid v1 JSON.");
+            if (item.TryGetProperty("adapter", out var adapter) &&
+                adapter.ValueKind == JsonValueKind.String &&
+                string.Equals(adapter.GetString(), "scrypted", StringComparison.Ordinal) &&
+                !item.TryGetProperty("cameraId", out _))
+            {
+                throw new EventLabInputException("manifest.camera-id", "A Scrypted fixture case requires cameraId.");
+            }
             var hasTypes = item.TryGetProperty("expectedEventTypes", out _);
             var hasDiagnostic = item.TryGetProperty("expectedDiagnosticCode", out _);
             if (hasTypes == hasDiagnostic)
@@ -276,7 +299,7 @@ internal static class FixtureManifestLoader
 
     private static void ValidatePayloadConvention(string adapter, string relativePath)
     {
-        var expectedExtension = adapter == "frigate" ? ".json" : ".xml";
+        var expectedExtension = adapter is "frigate" or "scrypted" ? ".json" : ".xml";
         if (!relativePath.StartsWith($"{adapter}/", StringComparison.Ordinal) ||
             !Path.GetExtension(relativePath).Equals(expectedExtension, StringComparison.Ordinal))
         {
@@ -449,6 +472,7 @@ internal static class FixtureManifestLoader
         string? Channel,
         string? ContentType,
         string? ReceivedAt,
+        string? CameraId,
         IReadOnlyList<string>? ExpectedEventTypes,
         string? ExpectedDiagnosticCode,
         string? Note);

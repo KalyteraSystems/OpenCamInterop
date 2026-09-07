@@ -98,6 +98,32 @@ public static class InteropCloudEventValidator
                 }
                 break;
 
+            case CameraEventTypes.ObjectObserved:
+                RequireSchema(cloudEvent, CameraEventSchemas.CameraObjectObservationV1, diagnostics);
+                if (TryReadData(
+                    cloudEvent.Data,
+                    "camera object observation",
+                    diagnostics,
+                    out CameraObjectObservationEventData? observationData,
+                    "adapter",
+                    "cameraId",
+                    "objectId",
+                    "className",
+                    "confidence",
+                    "zones",
+                    "observedAt"))
+                {
+                    ValidateObjectObservationData(observationData!, diagnostics);
+                    if (cloudEvent.Time != observationData!.ObservedAt)
+                    {
+                        diagnostics.Add(AdapterDiagnostic.Error(
+                            "data.observedAt",
+                            "data.observedAt must equal the CloudEvent time for an object observation.",
+                            "data.observedAt"));
+                    }
+                }
+                break;
+
             case CameraEventTypes.SignalChanged:
                 RequireSchema(cloudEvent, CameraEventSchemas.CameraSignalV1, diagnostics);
                 if (TryReadData(
@@ -294,6 +320,18 @@ public static class InteropCloudEventValidator
                 "data.endedAt cannot be earlier than data.startedAt.",
                 "data.endedAt"));
         }
+    }
+
+    private static void ValidateObjectObservationData(
+        CameraObjectObservationEventData data,
+        List<AdapterDiagnostic> diagnostics)
+    {
+        ValidateRequired(data.Adapter, "adapter", diagnostics);
+        ValidateRequired(data.CameraId, "cameraId", diagnostics);
+        ValidateRequired(data.ObjectId, "objectId", diagnostics);
+        ValidateRequired(data.ClassName, "className", diagnostics);
+        ValidateConfidence(data.Confidence, "confidence", diagnostics);
+        ValidateStringList(data.Zones, "zones", 100, diagnostics);
     }
 
     private static void ValidateSignalData(

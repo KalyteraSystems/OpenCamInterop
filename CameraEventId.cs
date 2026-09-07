@@ -32,6 +32,23 @@ public static class CameraEventId
         return $"{normalizedName}-{Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant()}";
     }
 
+    internal static string FromFields(
+        string adapterName,
+        params string[] fields)
+    {
+        if (string.IsNullOrWhiteSpace(adapterName))
+            throw new ArgumentException("An adapter name is required.", nameof(adapterName));
+        ArgumentNullException.ThrowIfNull(fields);
+        if (fields.Any(field => field is null))
+            throw new ArgumentException("Identity fields cannot contain null values.", nameof(fields));
+        var normalizedName = NormalizeAdapterName(adapterName);
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        AppendField(hash, Encoding.UTF8.GetBytes(adapterName));
+        foreach (var field in fields)
+            AppendField(hash, Encoding.UTF8.GetBytes(field));
+        return $"{normalizedName}-{Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant()}";
+    }
+
     public static string FromText(string adapterName, string value)
     {
         ArgumentNullException.ThrowIfNull(value);

@@ -12,6 +12,15 @@ public sealed record CameraObjectEventData(
     DateTimeOffset StartedAt,
     DateTimeOffset? EndedAt);
 
+public sealed record CameraObjectObservationEventData(
+    string Adapter,
+    string CameraId,
+    string ObjectId,
+    string ClassName,
+    double Confidence,
+    IReadOnlyList<string> Zones,
+    DateTimeOffset ObservedAt);
+
 public sealed record OnvifSimpleItem(string Name, string Value);
 
 public sealed record CameraSignalEventData(

@@ -12,14 +12,15 @@ public sealed class EventLabApplication
         OpenCamInterop EventLab alpha
 
         Usage:
-          opencaminterop inspect --adapter <frigate|onvif> --input <file> --source <absolute-uri> [options]
+          opencaminterop inspect --adapter <frigate|onvif|scrypted> --input <file> --source <absolute-uri> [options]
           opencaminterop verify  --manifest <manifest.json>
           opencaminterop replay  --manifest <manifest.json> [--no-wait]
 
         inspect options:
-          --channel <name>        Input channel (defaults to frigate/events or onvif/notifications).
+          --channel <name>        Input channel (defaults per adapter; Scrypted uses ObjectDetector).
           --content-type <type>   Input media type (defaults to application/json or application/soap+xml).
           --received-at <time>    UTC RFC3339 delivery time (defaults to 1970-01-01T00:00:00Z).
+          --camera-id <id>        Required opaque camera id for Scrypted; unsupported by other adapters.
           --topic-prefix <prefix> Frigate topic prefix (defaults to frigate).
 
         verify options:
@@ -34,7 +35,7 @@ public sealed class EventLabApplication
 
     private static readonly HashSet<string> InspectValueOptions = new(StringComparer.Ordinal)
     {
-        "adapter", "input", "source", "channel", "content-type", "received-at", "topic-prefix"
+        "adapter", "input", "source", "channel", "content-type", "received-at", "camera-id", "topic-prefix"
     };
 
     private static readonly HashSet<string> ManifestValueOptions = new(StringComparer.Ordinal)
@@ -133,17 +134,21 @@ public sealed class EventLabApplication
         }
 
         var adapter = options.Require("adapter");
-        if (adapter is not ("frigate" or "onvif"))
-            throw new EventLabInputException("adapter.unsupported", "The adapter must be frigate or onvif.");
+        if (adapter is not ("frigate" or "onvif" or "scrypted"))
+            throw new EventLabInputException("adapter.unsupported", "The adapter must be frigate, onvif, or scrypted.");
         var source = ParseSource(options.Require("source"));
         var input = BoundedFileReader.Read(
             options.Require("input"),
             BoundedFileReader.AdapterPayloadLimit,
             "input");
-        var channel = options.Optional("channel") ??
-            (adapter == "frigate" ? "frigate/events" : "onvif/notifications");
+        var channel = options.Optional("channel") ?? adapter switch
+        {
+            "frigate" => "frigate/events",
+            "onvif" => "onvif/notifications",
+            _ => "ObjectDetector"
+        };
         var contentType = options.Optional("content-type") ??
-            (adapter == "frigate" ? "application/json" : "application/soap+xml");
+            (adapter == "onvif" ? "application/soap+xml" : "application/json");
         ValidateBoundedText(channel, 256, "cli.channel", "channel");
         ValidateBoundedText(contentType, 256, "cli.content-type", "content type");
         var receivedAt = ParseReceivedAt(options.Optional("received-at"));
@@ -151,6 +156,19 @@ public sealed class EventLabApplication
         var topicPrefix = options.Optional("topic-prefix");
         if (topicPrefix is not null)
             ValidateBoundedText(topicPrefix, 249, "cli.topic-prefix", "topic prefix");
+        var cameraId = options.Optional("camera-id");
+        if (adapter == "scrypted")
+        {
+            if (cameraId is null)
+                throw new EventLabInputException("cli.camera-id", "The Scrypted adapter requires --camera-id.");
+            ValidateBoundedText(cameraId, 512, "cli.camera-id", "camera id");
+        }
+        else if (cameraId is not null)
+        {
+            throw new EventLabInputException(
+                "cli.option-incompatible",
+                "The --camera-id option is supported only by the Scrypted adapter.");
+        }
         var result = AdapterRunner.Execute(new AdapterInvocation(
             adapter,
             source,
@@ -158,6 +176,7 @@ public sealed class EventLabApplication
             contentType,
             receivedAt,
             input,
+            cameraId,
             topicPrefix));
         await WriteAdapterDiagnosticsAsync(result.Diagnostics, null).ConfigureAwait(false);
         if (!result.IsSuccess || result.Events.Count == 0)

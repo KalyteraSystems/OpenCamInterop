@@ -1,5 +1,5 @@
 name: Propose a fixture behavior
-description: Suggest one distinct Frigate or ONVIF behavior for a sanitized executable case.
+description: Suggest one distinct Frigate, Scrypted, or ONVIF behavior for a sanitized executable case.
 title: "[Fixture]: "
 labels: [fixture, help wanted]
 body:
@@ -12,6 +12,7 @@ body:
       label: Input family
       options:
         - Frigate
+        - Scrypted ObjectsDetected
         - ONVIF
     validations:
       required: true

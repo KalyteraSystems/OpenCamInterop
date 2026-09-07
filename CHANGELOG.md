@@ -5,10 +5,12 @@
 ### Added
 
 - A structured issue form for proposing documented camera-event input families beyond Frigate and ONVIF
+- A transport-free, observation-only Scrypted `ObjectsDetected` adapter with explicit camera identity, deterministic tracked-object correlation, a privacy allowlist, and synthetic EventLab coverage
 
 ### Changed
 
 - The README now documents a tested, no-SDK path for verifying and replaying the self-contained release corpus
+- Scrypted object events are modeled as `object.observed.v1`; the adapter deliberately refuses to invent new/update/end lifecycle semantics or object ids
 
 ## 0.1.0-alpha.1 - 2026-09-05
 

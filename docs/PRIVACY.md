@@ -19,12 +19,13 @@ Protocol namespace URIs required to reproduce parsing behavior are acceptable. U
 
 - Payloads are limited to 1 MiB.
 - Frigate output is built from an allowlist. Arbitrary native extensions, thumbnails, recognized plates, and sub-labels are not copied.
+- Scrypted output is built from an observation allowlist. Recognized labels, embeddings, geometry, landmarks, clip paths, movement/history, media resources, retention ids, dimensions, and generation source ids are not copied.
 - Recognized ONVIF source and rule identifiers become stable opaque hashes.
 - Generic ONVIF item names and ordering are retained, including duplicates, but values become `[redacted]`.
 - XML DTDs and external entity resolution are prohibited; XML depth, notification count, and item count are bounded.
 - Structured JSON rejects duplicate object members, oversized input, oversized batches, invalid typed v1 data, and mismatched v1 schemas.
 
-Frigate camera IDs, object IDs, labels, and zones are retained because consumers need correlation. Caller-provided CloudEvent `source` values are emitted verbatim. Allowlisting and SHA-256 identifiers are not encryption or automatic anonymity, especially for low-entropy values.
+Frigate camera IDs, object IDs, labels, and zones are retained because consumers need correlation. Scrypted retains the caller camera id, native object id, class name, score, and zones for the same reason. Caller-provided CloudEvent `source` values are emitted verbatim. Allowlisting and SHA-256 identifiers are not encryption or automatic anonymity, especially for low-entropy values.
 
 ## Review checklist
 

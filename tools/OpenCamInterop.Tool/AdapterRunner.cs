@@ -2,6 +2,7 @@ using CloudNative.CloudEvents;
 using OpenCamInterop.Adapters;
 using OpenCamInterop.Adapters.Frigate;
 using OpenCamInterop.Adapters.Onvif;
+using OpenCamInterop.Adapters.Scrypted;
 
 namespace OpenCamInterop.EventLab;
 
@@ -12,6 +13,7 @@ internal sealed record AdapterInvocation(
     string ContentType,
     DateTimeOffset ReceivedAt,
     ReadOnlyMemory<byte> Payload,
+    string? CameraId = null,
     string? TopicPrefix = null);
 
 internal static class AdapterRunner
@@ -31,9 +33,20 @@ internal static class AdapterRunner
                 "onvif" => throw new EventLabInputException(
                     "cli.option-incompatible",
                     "The --topic-prefix option is supported only by the Frigate adapter."),
+                "scrypted" when invocation.TopicPrefix is null && invocation.CameraId is not null =>
+                    new ScryptedObjectsDetectedAdapter(new ScryptedAdapterOptions(
+                        invocation.Source,
+                        invocation.CameraId,
+                        invocation.Channel)),
+                "scrypted" when invocation.CameraId is null => throw new EventLabInputException(
+                    "cli.camera-id",
+                    "The Scrypted adapter requires an explicit camera id."),
+                "scrypted" => throw new EventLabInputException(
+                    "cli.option-incompatible",
+                    "The --topic-prefix option is supported only by the Frigate adapter."),
                 _ => throw new EventLabInputException(
                     "adapter.unsupported",
-                    "The adapter must be frigate or onvif.")
+                    "The adapter must be frigate, onvif, or scrypted.")
             };
         }
         catch (EventLabInputException)
@@ -60,7 +73,8 @@ internal static class AdapterRunner
             fixture.Channel,
             fixture.ContentType,
             fixture.ReceivedAt,
-            payload);
+            payload,
+            fixture.CameraId);
     }
 }
 

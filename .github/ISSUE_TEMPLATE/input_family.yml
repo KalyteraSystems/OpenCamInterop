@@ -1,5 +1,5 @@
 name: Propose an input family
-description: Suggest a documented camera-event format beyond the current Frigate and ONVIF adapters.
+description: Suggest a documented camera-event format beyond the current Frigate, Scrypted, and ONVIF adapters.
 title: "[Input family]: "
 labels: [enhancement, help wanted]
 body:

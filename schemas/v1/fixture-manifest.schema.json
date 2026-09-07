@@ -48,14 +48,15 @@
         "adapter": {
           "enum": [
             "frigate",
-            "onvif"
+            "onvif",
+            "scrypted"
           ]
         },
         "payload": {
           "type": "string",
           "minLength": 1,
           "maxLength": 512,
-          "pattern": "^(?:frigate/[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*\\.json|onvif/[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*\\.xml)$"
+          "pattern": "^(?:frigate/[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*\\.json|scrypted/[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*\\.json|onvif/[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*\\.xml)$"
         },
         "source": {
           "type": "string",
@@ -79,6 +80,11 @@
           "maxLength": 256,
           "pattern": "Z$"
         },
+        "cameraId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
         "expectedEventTypes": {
           "type": "array",
           "minItems": 1,
@@ -89,6 +95,7 @@
               "com.kalyterasystems.opencaminterop.object.detected.v1",
               "com.kalyterasystems.opencaminterop.object.updated.v1",
               "com.kalyterasystems.opencaminterop.object.ended.v1",
+              "com.kalyterasystems.opencaminterop.object.observed.v1",
               "com.kalyterasystems.opencaminterop.signal.changed.v1",
               "com.kalyterasystems.opencaminterop.onvif.notification.v1"
             ]
@@ -141,9 +148,36 @@
             ]
           },
           "then": {
+            "not": {
+              "required": [
+                "cameraId"
+              ]
+            },
             "properties": {
               "payload": {
                 "pattern": "^frigate/.+\\.json$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter": {
+                "const": "scrypted"
+              }
+            },
+            "required": [
+              "adapter"
+            ]
+          },
+          "then": {
+            "required": [
+              "cameraId"
+            ],
+            "properties": {
+              "payload": {
+                "pattern": "^scrypted/.+\\.json$"
               }
             }
           }
@@ -160,6 +194,11 @@
             ]
           },
           "then": {
+            "not": {
+              "required": [
+                "cameraId"
+              ]
+            },
             "properties": {
               "payload": {
                 "pattern": "^onvif/.+\\.xml$"

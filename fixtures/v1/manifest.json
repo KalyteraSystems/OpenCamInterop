@@ -27,6 +27,20 @@
       "note": "Reuses the synthetic payload to verify channel rejection before parsing; all identifiers remain fake sentinels."
     },
     {
+      "id": "scrypted.objects-detected.observed",
+      "adapter": "scrypted",
+      "payload": "scrypted/objects-detected.json",
+      "source": "urn:opencaminterop:fixture:scrypted",
+      "channel": "fixture/camera/ObjectDetector",
+      "contentType": "application/json; charset=utf-8",
+      "receivedAt": "2026-09-04T10:30:00Z",
+      "cameraId": "synthetic-camera-alpha",
+      "expectedEventTypes": [
+        "com.kalyterasystems.opencaminterop.object.observed.v1"
+      ],
+      "note": "Synthetic tracked ObjectsDetected observation; recognized labels, embeddings, geometry, media references, generator identity, and retention ids are deliberately fake and omitted from normalized output."
+    },
+    {
       "id": "onvif.cell-motion-changed",
       "adapter": "onvif",
       "payload": "onvif/cell-motion-changed.xml",

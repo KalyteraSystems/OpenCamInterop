@@ -3,7 +3,7 @@
 [![CI](https://github.com/KalyteraSystems/OpenCamInterop/actions/workflows/ci.yml/badge.svg)](https://github.com/KalyteraSystems/OpenCamInterop/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/KalyteraSystems/OpenCamInterop/actions/workflows/codeql.yml/badge.svg)](https://github.com/KalyteraSystems/OpenCamInterop/actions/workflows/codeql.yml)
 
-OpenCamInterop turns sanitized Frigate and ONVIF event quirks into deterministic, offline compatibility tests. Its EventLab CLI can inspect one native payload, verify every case in a versioned fixture corpus, and replay normalized [CloudEvents 1.0](https://cloudevents.io/) as streaming NDJSON.
+OpenCamInterop turns sanitized Frigate, Scrypted `ObjectsDetected`, and ONVIF event quirks into deterministic, offline compatibility tests. Its EventLab CLI can inspect one native payload, verify every case in a versioned fixture corpus, and replay normalized [CloudEvents 1.0](https://cloudevents.io/) as streaming NDJSON.
 
 The project opens no network connections, discovers no devices, stores no credentials, and processes no camera images or video. Contributors can reproduce an interoperability behavior without owning the original hardware or sharing a raw private capture.
 
@@ -58,6 +58,19 @@ dotnet run --project tools/OpenCamInterop.Tool -- inspect \
   --source urn:opencaminterop:local:inspect
 ```
 
+Scrypted observations require an explicit opaque camera id because the public payload's `sourceId` can identify a camera or a generating plug-in. They normalize only tracked detections with a native object `id`, and they become `object.observed.v1` rather than a guessed lifecycle transition:
+
+```console
+dotnet run --project tools/OpenCamInterop.Tool -- inspect \
+  --adapter scrypted \
+  --input fixtures/v1/scrypted/objects-detected.json \
+  --source urn:opencaminterop:local:scrypted \
+  --camera-id synthetic-camera-alpha \
+  --channel fixture/camera/ObjectDetector
+```
+
+The [Scrypted profile](docs/SCRYPTED.md) records the upstream evidence, deterministic identity/time rules, deliberate rejection of id-less detections, and privacy allowlist.
+
 Use `--help` for the complete command and exit-code contract. The [EventLab guide](tools/OpenCamInterop.Tool/README.md) documents output and safety limits.
 
 ## Contribute one real behavior
@@ -66,7 +79,7 @@ The most valuable contribution is one previously uncovered behavior reduced to a
 
 You do not need to write code or publish a payload to start. Use the
 [fixture-behavior form](https://github.com/KalyteraSystems/OpenCamInterop/issues/new?template=fixture_behavior.yml)
-to describe a Frigate or ONVIF quirk safely. If the event family is not supported,
+to describe a Frigate, Scrypted, or ONVIF quirk safely. If the event family is not supported,
 use the
 [input-family proposal](https://github.com/KalyteraSystems/OpenCamInterop/issues/new?template=input_family.yml)
 to identify its public documentation, smallest useful scope, and a behavior that
@@ -99,7 +112,7 @@ if (result.IsSuccess)
 }
 ```
 
-Inputs are capped at 1 MiB. Structured CloudEvents JSON is capped at 4 MiB and batches at 256 events. Frigate output uses an explicit field allowlist, while generic ONVIF values are redacted. Retained identifiers and caller-provided `source` values are not automatically anonymous; use opaque URNs and synthetic identifiers in shared fixtures. See the [event contract](docs/CONTRACT.md) and [privacy boundary](docs/PRIVACY.md).
+Inputs are capped at 1 MiB. Structured CloudEvents JSON is capped at 4 MiB and batches at 256 events. Frigate and Scrypted outputs use explicit field allowlists, while generic ONVIF values are redacted. Retained identifiers and caller-provided `source` values are not automatically anonymous; use opaque URNs and synthetic identifiers in shared fixtures. See the [event contract](docs/CONTRACT.md) and [privacy boundary](docs/PRIVACY.md).
 
 ## Honest alpha status
 
@@ -107,9 +120,9 @@ The checked-in baseline is intentionally small:
 
 | Measure | Current evidence |
 | --- | ---: |
-| Executable cases | 4 synthetic cases |
-| Payloads | 3 synthetic payloads |
-| Input adapters | 2 (Frigate and ONVIF) |
+| Executable cases | 5 synthetic cases |
+| Payloads | 4 synthetic payloads |
+| Input adapters | 3 (Frigate, Scrypted, and ONVIF) |
 | Externally derived behavior cases | 0 |
 | Independent downstream consumers | 0 |
 | Non-maintainer behavior contributions | 0 |
@@ -119,7 +132,7 @@ The project does not count stars, generated matrix rows, mechanically split fixt
 
 ## Non-goals
 
-OpenCamInterop is not an NVR, camera viewer, MQTT bridge, ONVIF client, discovery tool, conformance suite, or certification program. Frigate and ONVIF names identify input formats and do not imply endorsement.
+OpenCamInterop is not an NVR, camera viewer, MQTT bridge, Scrypted client, ONVIF client, discovery tool, conformance suite, or certification program. Frigate, Scrypted, and ONVIF names identify input formats and do not imply endorsement.
 
 The API and fixture manifest are pre-1.0 and may change with documented migration notes. No NuGet package has been published; source and GitHub release archives are the supported alpha delivery paths.
 

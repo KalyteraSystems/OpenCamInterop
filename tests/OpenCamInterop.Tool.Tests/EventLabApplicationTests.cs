@@ -43,7 +43,40 @@ public sealed class EventLabApplicationTests
 
         Assert.Equal(EventLabExitCodes.Success, exitCode);
         Assert.Equal(string.Empty, output.ToString());
-        Assert.Contains("ok [verify]: 4 fixture cases matched.", error.ToString(), StringComparison.Ordinal);
+        Assert.Contains("ok [verify]: 5 fixture cases matched.", error.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task InspectSupportsScryptedOnlyWithExplicitCameraIdentity()
+    {
+        var output = new StringWriter(CultureInfo.InvariantCulture);
+        var error = new StringWriter(CultureInfo.InvariantCulture);
+        var application = new EventLabApplication(output, error, new RecordingReplayClock());
+
+        var exitCode = await application.RunAsync(new[]
+        {
+            "inspect",
+            "--adapter", "scrypted",
+            "--input", FixturePath("scrypted", "objects-detected.json"),
+            "--source", "urn:opencaminterop:test:scrypted",
+            "--camera-id", "synthetic-camera-alpha",
+            "--channel", "fixture/camera/ObjectDetector"
+        });
+
+        Assert.Equal(EventLabExitCodes.Success, exitCode);
+        Assert.Equal(string.Empty, error.ToString());
+        var cloudEvent = StructuredCloudEventJson.Deserialize(Encoding.UTF8.GetBytes(output.ToString()));
+        Assert.Equal(CameraEventTypes.ObjectObserved, cloudEvent.Type);
+
+        var missingCamera = await application.RunAsync(new[]
+        {
+            "inspect",
+            "--adapter", "scrypted",
+            "--input", FixturePath("scrypted", "objects-detected.json"),
+            "--source", "urn:opencaminterop:test:scrypted"
+        });
+        Assert.Equal(EventLabExitCodes.InvalidInput, missingCamera);
+        Assert.Contains("error [cli.camera-id]", error.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -309,6 +342,7 @@ public sealed class EventLabApplicationTests
             new[]
             {
                 "frigate-events-v1-7289edc029e95d792deb8993c995018c05c5102cc8c934d6c62dbbe1c9b614f7",
+                "scrypted-objects-detected-v1-3d2d86d12e8a9cc8320b341eecdf6b7597007eeccd6e8add1a1b9009632b9c4f",
                 "onvif-notification-v1-182c08ec85c891b61a028bacee7dae1d1b4caf823fa251515dfef0dbd7b9b0a9",
                 "onvif-notification-v1-fd238d7f1bb29de145b48a561f8d2dcbea736a8ea0159d581233350616369115"
             },

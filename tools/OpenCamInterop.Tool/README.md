@@ -1,11 +1,12 @@
 # OpenCamInterop EventLab CLI
 
-EventLab is an offline .NET 10 command-line tool for inspecting sanitized Frigate and ONVIF payloads, verifying the versioned fixture corpus, and replaying it deterministically. It opens no network connections and has no transport clients.
+EventLab is an offline .NET 10 command-line tool for inspecting sanitized Frigate, Scrypted `ObjectsDetected`, and ONVIF payloads, verifying the versioned fixture corpus, and replaying it deterministically. It opens no network connections and has no transport clients.
 
 Run it from the standalone repository root:
 
 ```text
 dotnet run --project tools/OpenCamInterop.Tool -- inspect --adapter frigate --input fixtures/v1/frigate/object-new.json --source urn:opencaminterop:local:inspect
+dotnet run --project tools/OpenCamInterop.Tool -- inspect --adapter scrypted --input fixtures/v1/scrypted/objects-detected.json --source urn:opencaminterop:local:scrypted --camera-id synthetic-camera-alpha --channel fixture/camera/ObjectDetector
 dotnet run --project tools/OpenCamInterop.Tool -- verify --manifest fixtures/v1/manifest.json
 dotnet run --project tools/OpenCamInterop.Tool -- replay --manifest fixtures/v1/manifest.json --no-wait
 ```
@@ -20,6 +21,6 @@ dotnet run --project tools/OpenCamInterop.Tool -- verify --manifest fixtures/v1/
 
 Redirect stdout to replace the matrix after reviewing a manifest change. Human status remains on stderr, so stdout contains only the generated Markdown.
 
-Payloads are capped at 1 MiB, manifests at 64 KiB and 256 cases, replay output at 4 MiB, and waited replay at ten minutes. Manifest payload paths must remain beneath the manifest directory, use the matching adapter directory and extension, and contain no symbolic links. Manifest sources must be opaque absolute URNs.
+Payloads are capped at 1 MiB, manifests at 64 KiB and 256 cases, replay output at 4 MiB, and waited replay at ten minutes. Manifest payload paths must remain beneath the manifest directory, use the matching adapter directory and extension, and contain no symbolic links. Manifest sources must be opaque absolute URNs. Scrypted `inspect` requires `--camera-id`; `--channel` can carry the configured MQTT path ending in `/ObjectDetector` and is never used as camera identity.
 
 Exit codes are stable: `0` success, `1` unexpected internal failure, `2` invalid CLI or input, `3` fixture expectation failure, and `130` cancellation. Use `--help` for the complete option summary.

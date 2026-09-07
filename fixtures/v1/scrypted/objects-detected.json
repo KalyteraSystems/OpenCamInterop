@@ -1,0 +1,35 @@
+{
+  "detections": [
+    {
+      "id": "synthetic-track-7",
+      "className": "person",
+      "score": 0.88,
+      "zones": ["synthetic-entry"],
+      "history": {
+        "firstSeen": 1788516929000,
+        "lastSeen": 1788516930123
+      },
+      "movement": {
+        "firstSeen": 1788516929500,
+        "lastSeen": 1788516930123,
+        "moving": true
+      },
+      "label": "SYNTHETIC-PRIVATE-RECOGNIZED-LABEL",
+      "labelScore": 0.99,
+      "embedding": "SYNTHETIC-PRIVATE-EMBEDDING",
+      "boundingBox": [0.1, 0.2, 0.3, 0.4],
+      "landmarks": [[0.2, 0.3]],
+      "clipPaths": [[[0.1, 0.1], [0.2, 0.2], [0.3, 0.1]]],
+      "resources": {
+        "syntheticPrivateMedia": "SYNTHETIC-PRIVATE-DETECTION-MEDIA"
+      }
+    }
+  ],
+  "detectionId": "SYNTHETIC-PRIVATE-RETAINED-MEDIA-ID",
+  "inputDimensions": [1920, 1080],
+  "timestamp": 1788516930123,
+  "resources": {
+    "syntheticPrivateMedia": "SYNTHETIC-PRIVATE-ROOT-MEDIA"
+  },
+  "sourceId": "SYNTHETIC-PRIVATE-GENERATION-SOURCE"
+}

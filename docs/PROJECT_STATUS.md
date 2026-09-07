@@ -1,14 +1,14 @@
 # Project status and evidence
 
-This page keeps project health separate from promotional activity. Counts describe public evidence as of 2026-09-05 and should change only when the underlying evidence changes.
+This page keeps project health separate from promotional activity. Counts describe checked-in evidence as of 2026-09-07 and should change only when the underlying evidence changes.
 
 ## Baseline
 
 | Measure | Count | Qualification rule |
 | --- | ---: | --- |
-| Executable fixture cases | 4 | A manifest case exercised by the production verifier |
-| Synthetic payload files | 3 | A registered JSON or XML payload |
-| Input adapters | 2 | A tested native input family: Frigate or ONVIF |
+| Executable fixture cases | 5 | A manifest case exercised by the production verifier |
+| Synthetic payload files | 4 | A registered JSON or XML payload |
+| Input adapters | 3 | A tested native input family: Frigate, Scrypted, or ONVIF |
 | Externally derived behavior cases | 0 | A distinct behavior reported by someone outside project maintenance and merged as a sanitized executable case |
 | Independent downstream consumers | 0 | A non-Kalytera repository that runs or references OpenCamInterop in real CI or code |
 | Non-maintainer behavior contributors | 0 | A unique person outside maintenance whose substantive behavior case was merged |

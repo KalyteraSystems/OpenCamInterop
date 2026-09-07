@@ -12,7 +12,7 @@
     <RepositoryUrl>https://github.com/KalyteraSystems/OpenCamInterop</RepositoryUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>camera;cloudevents;frigate;onvif;interoperability</PackageTags>
+    <PackageTags>camera;cloudevents;frigate;scrypted;onvif;interoperability</PackageTags>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>

@@ -6,6 +6,10 @@ public static class CameraEventSchemas
         "urn:opencaminterop:schema:camera-object-event:1",
         UriKind.Absolute);
 
+    public static Uri CameraObjectObservationV1 { get; } = new(
+        "urn:opencaminterop:schema:camera-object-observation-event:1",
+        UriKind.Absolute);
+
     public static Uri CameraSignalV1 { get; } = new(
         "urn:opencaminterop:schema:camera-signal-event:1",
         UriKind.Absolute);

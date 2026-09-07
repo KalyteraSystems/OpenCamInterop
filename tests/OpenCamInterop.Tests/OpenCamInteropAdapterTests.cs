@@ -5,6 +5,7 @@ using OpenCamInterop;
 using OpenCamInterop.Adapters;
 using OpenCamInterop.Adapters.Frigate;
 using OpenCamInterop.Adapters.Onvif;
+using OpenCamInterop.Adapters.Scrypted;
 
 namespace OpenCamInterop.Tests;
 
@@ -140,6 +141,204 @@ public sealed class OpenCamInteropAdapterTests
             new FrigateAdapterOptions(new Uri("https://example.test/camera?token=secret")));
         Assert.Throws<ArgumentException>(() =>
             new OnvifAdapterOptions(new Uri("https://example.test/camera#private")));
+        Assert.Throws<ArgumentException>(() =>
+            new ScryptedAdapterOptions(new Uri("https://user:secret@example.test/camera"), "camera-alpha"));
+    }
+
+    [Fact]
+    public void ScryptedMapsTrackedDetectionsAsObservationsWithoutGuessingLifecycle()
+    {
+        var adapter = CreateScryptedAdapter();
+        var payload = ReadFixture("scrypted", "objects-detected.json");
+
+        var first = adapter.Adapt(JsonMessage("fixture/camera/ObjectDetector", payload));
+        var redelivery = adapter.Adapt(new AdapterMessage(
+            "fixture/camera/ObjectDetector",
+            Encoding.UTF8.GetBytes(payload),
+            "application/json",
+            ReceivedAt.AddHours(4)));
+
+        Assert.True(first.IsSuccess);
+        var cloudEvent = Assert.Single(first.Events);
+        Assert.Equal(CameraEventTypes.ObjectObserved, cloudEvent.Type);
+        Assert.Equal(new Uri("urn:camera:scrypted-lab"), cloudEvent.Source);
+        Assert.Equal("cameras/synthetic-camera-alpha/objects/synthetic-track-7", cloudEvent.Subject);
+        Assert.Equal(CameraEventSchemas.CameraObjectObservationV1, cloudEvent.DataSchema);
+        Assert.Equal(DateTimeOffset.FromUnixTimeMilliseconds(1_788_516_930_123), cloudEvent.Time);
+        var data = Assert.IsType<CameraObjectObservationEventData>(cloudEvent.Data);
+        Assert.Equal("scrypted.objects-detected.v1", data.Adapter);
+        Assert.Equal("synthetic-camera-alpha", data.CameraId);
+        Assert.Equal("synthetic-track-7", data.ObjectId);
+        Assert.Equal("person", data.ClassName);
+        Assert.Equal(0.88, data.Confidence);
+        Assert.Equal(new[] { "synthetic-entry" }, data.Zones);
+        Assert.Equal(cloudEvent.Time, data.ObservedAt);
+        Assert.Equal(cloudEvent.Id, Assert.Single(redelivery.Events).Id);
+        Assert.Equal(cloudEvent.Time, Assert.Single(redelivery.Events).Time);
+    }
+
+    [Fact]
+    public void ScryptedAllowlistOmitsRecognitionGeometryMediaAndGeneratorFields()
+    {
+        var payload = ReadFixture("scrypted", "objects-detected.json");
+        var result = CreateScryptedAdapter().Adapt(JsonMessage(
+            "fixture/camera/ObjectDetector",
+            payload));
+        var changedPrivateField = CreateScryptedAdapter().Adapt(JsonMessage(
+            "fixture/camera/ObjectDetector",
+            payload.Replace(
+                "SYNTHETIC-PRIVATE-RECOGNIZED-LABEL",
+                "SYNTHETIC-PRIVATE-DIFFERENT-LABEL",
+                StringComparison.Ordinal)));
+
+        var cloudEvent = Assert.Single(result.Events);
+        var encoded = Encoding.UTF8.GetString(StructuredCloudEventJson.Serialize(cloudEvent).Span);
+
+        Assert.Contains("\"className\":\"person\"", encoded, StringComparison.Ordinal);
+        Assert.Contains("\"zones\":[\"synthetic-entry\"]", encoded, StringComparison.Ordinal);
+        foreach (var excluded in new[]
+                 {
+                     "label", "labelScore", "embedding", "boundingBox", "landmarks", "clipPaths",
+                     "resources", "detectionId", "inputDimensions", "sourceId", "history", "movement",
+                     "SYNTHETIC-PRIVATE"
+                 })
+        {
+            Assert.DoesNotContain(excluded, encoded, StringComparison.OrdinalIgnoreCase);
+        }
+        Assert.Equal(cloudEvent.Id, Assert.Single(changedPrivateField.Events).Id);
+    }
+
+    [Fact]
+    public void ScryptedFailsClosedWhenTrackedObjectIdentityIsMissingOrAmbiguous()
+    {
+        const string missingId = """
+            {"timestamp":1788516930123,"detections":[{"className":"person","score":1}]}
+            """;
+        const string duplicateIds = """
+            {"timestamp":1788516930123,"detections":[
+              {"id":"same","className":"person","score":1},
+              {"id":"same","className":"car","score":0.9}
+            ]}
+            """;
+
+        var missing = CreateScryptedAdapter().Adapt(JsonMessage("fixture/camera/ObjectDetector", missingId));
+        var duplicate = CreateScryptedAdapter().Adapt(JsonMessage("fixture/camera/ObjectDetector", duplicateIds));
+
+        Assert.Empty(missing.Events);
+        Assert.Contains(missing.Diagnostics, diagnostic =>
+            diagnostic.Code == "scrypted.field.required" && diagnostic.Path == "$.detections[0].id");
+        Assert.Empty(duplicate.Events);
+        Assert.Contains(duplicate.Diagnostics, diagnostic =>
+            diagnostic.Code == "scrypted.field.invalid" && diagnostic.Path == "$.detections[1].id");
+    }
+
+    [Fact]
+    public void ScryptedRejectsDuplicateJsonInvalidTimestampsAndExcessiveCounts()
+    {
+        const string duplicateJson = """
+            {"timestamp":1788516930123,"timestamp":1788516930124,"detections":[]}
+            """;
+        const string invalidTimestamp = """
+            {"timestamp":"delivery-time","detections":[]}
+            """;
+        const string secondsInsteadOfMilliseconds = """
+            {"timestamp":1788516930,"detections":[]}
+            """;
+        var tooManyDetections = JsonSerializer.Serialize(new
+        {
+            timestamp = 1_788_516_930_123L,
+            detections = Enumerable.Range(0, 257).Select(index => new
+            {
+                id = $"track-{index}",
+                className = "person",
+                score = 1.0
+            })
+        });
+
+        var duplicate = CreateScryptedAdapter().Adapt(JsonMessage("fixture/camera/ObjectDetector", duplicateJson));
+        var invalid = CreateScryptedAdapter().Adapt(JsonMessage("fixture/camera/ObjectDetector", invalidTimestamp));
+        var wrongUnits = CreateScryptedAdapter().Adapt(JsonMessage("fixture/camera/ObjectDetector", secondsInsteadOfMilliseconds));
+        var excessive = CreateScryptedAdapter().Adapt(JsonMessage("fixture/camera/ObjectDetector", tooManyDetections));
+
+        Assert.Contains(duplicate.Diagnostics, diagnostic => diagnostic.Code == "scrypted.json.duplicate-property");
+        Assert.Contains(invalid.Diagnostics, diagnostic =>
+            diagnostic.Code == "scrypted.field.invalid" && diagnostic.Path == "$.timestamp");
+        Assert.Contains(wrongUnits.Diagnostics, diagnostic =>
+            diagnostic.Code == "scrypted.field.invalid" && diagnostic.Path == "$.timestamp");
+        Assert.Contains(excessive.Diagnostics, diagnostic =>
+            diagnostic.Code == "scrypted.field.invalid" && diagnostic.Path == "$.detections");
+    }
+
+    [Fact]
+    public void ScryptedRejectsWrongTopicContentTypeScoreAndZoneCount()
+    {
+        var adapter = CreateScryptedAdapter();
+        var validPayload = ReadFixture("scrypted", "objects-detected.json");
+        var wrongTopic = adapter.Adapt(JsonMessage("fixture/camera/MotionSensor", validPayload));
+        var wrongContentType = adapter.Adapt(new AdapterMessage(
+            "fixture/camera/ObjectDetector",
+            Encoding.UTF8.GetBytes(validPayload),
+            "text/plain",
+            ReceivedAt));
+        const string invalidScore = """
+            {"timestamp":1788516930123,"detections":[{"id":"track","className":"person","score":1.01}]}
+            """;
+        var tooManyZones = JsonSerializer.Serialize(new
+        {
+            timestamp = 1_788_516_930_123L,
+            detections = new[]
+            {
+                new
+                {
+                    id = "track",
+                    className = "person",
+                    score = 1.0,
+                    zones = Enumerable.Range(0, 101).Select(index => $"zone-{index}").ToArray()
+                }
+            }
+        });
+
+        var score = adapter.Adapt(JsonMessage("fixture/camera/ObjectDetector", invalidScore));
+        var zones = adapter.Adapt(JsonMessage("fixture/camera/ObjectDetector", tooManyZones));
+
+        Assert.Contains(wrongTopic.Diagnostics, diagnostic => diagnostic.Code == "scrypted.channel.unsupported");
+        Assert.Contains(wrongContentType.Diagnostics, diagnostic => diagnostic.Code == "scrypted.content-type.unsupported");
+        Assert.Contains(score.Diagnostics, diagnostic =>
+            diagnostic.Code == "scrypted.field.invalid" && diagnostic.Path == "$.detections[0].score");
+        Assert.Contains(zones.Diagnostics, diagnostic =>
+            diagnostic.Code == "scrypted.field.invalid" && diagnostic.Path == "$.detections[0].zones");
+    }
+
+    [Fact]
+    public void ScryptedRejectsExcessiveJsonNesting()
+    {
+        var nested = "null";
+        for (var index = 0; index < 65; index++)
+            nested = $"[{nested}]";
+        var payload = $"{{\"timestamp\":1788516930123,\"detections\":[],\"ignored\":{nested}}}";
+
+        var result = CreateScryptedAdapter().Adapt(JsonMessage("fixture/camera/ObjectDetector", payload));
+
+        Assert.Empty(result.Events);
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "scrypted.json.invalid");
+    }
+
+    [Fact]
+    public void ScryptedRejectsOversizedAndOverlyComplexPayloads()
+    {
+        var adapter = CreateScryptedAdapter();
+        var oversized = adapter.Adapt(new AdapterMessage(
+            "fixture/camera/ObjectDetector",
+            new byte[(1024 * 1024) + 1],
+            "application/json",
+            ReceivedAt));
+        var excessiveNodes = $$"""
+            {"timestamp":1788516930123,"detections":[],"ignored":[{{string.Join(',', Enumerable.Repeat("null", 8192))}}]}
+            """;
+        var complex = adapter.Adapt(JsonMessage("fixture/camera/ObjectDetector", excessiveNodes));
+
+        Assert.Contains(oversized.Diagnostics, diagnostic => diagnostic.Code == "payload.too-large");
+        Assert.Contains(complex.Diagnostics, diagnostic => diagnostic.Code == "scrypted.json.too-complex");
     }
 
     [Theory]
@@ -409,15 +608,19 @@ public sealed class OpenCamInteropAdapterTests
             ReadFixture("onvif", "cell-motion-changed.xml"))).Events);
         var genericEvent = Assert.Single(CreateOnvifAdapter().Adapt(XmlMessage(
             OnvifMotionEnvelope("Initialized", "true", "tns"))).Events);
+        var observationEvent = Assert.Single(CreateScryptedAdapter().Adapt(JsonMessage(
+            "fixture/camera/ObjectDetector",
+            ReadFixture("scrypted", "objects-detected.json"))).Events);
 
         var encoded = StructuredCloudEventJson.SerializeBatch(
-            new[] { objectEvent, signalEvent, genericEvent });
+            new[] { objectEvent, observationEvent, signalEvent, genericEvent });
         var decoded = StructuredCloudEventJson.DeserializeBatch(encoded);
 
         Assert.Equal(
             new[]
             {
                 CameraEventTypes.ObjectDetected,
+                CameraEventTypes.ObjectObserved,
                 CameraEventTypes.SignalChanged,
                 CameraEventTypes.OnvifNotification
             },
@@ -508,7 +711,7 @@ public sealed class OpenCamInteropAdapterTests
         var identifiers = new HashSet<Uri>();
         var files = Directory.GetFiles(schemaDirectory, "*.schema.json");
 
-        Assert.Equal(4, files.Length);
+        Assert.Equal(5, files.Length);
         foreach (var file in files)
         {
             using var document = JsonDocument.Parse(File.ReadAllBytes(file));
@@ -530,6 +733,14 @@ public sealed class OpenCamInteropAdapterTests
     {
         return new OnvifNotificationAdapter(new OnvifAdapterOptions(
             new Uri("urn:camera:onvif-lab")));
+    }
+
+    private static ScryptedObjectsDetectedAdapter CreateScryptedAdapter()
+    {
+        return new ScryptedObjectsDetectedAdapter(new ScryptedAdapterOptions(
+            new Uri("urn:camera:scrypted-lab"),
+            "synthetic-camera-alpha",
+            "fixture/camera/ObjectDetector"));
     }
 
     private static AdapterMessage JsonMessage(string channel, string json)
