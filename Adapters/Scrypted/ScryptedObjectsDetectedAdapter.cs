@@ -191,7 +191,7 @@ public sealed class ScryptedObjectsDetectedAdapter : ICameraEventAdapter
             var names = new HashSet<string>(StringComparer.Ordinal);
             foreach (var property in element.EnumerateObject())
             {
-                if (!names.Add(property.Name))
+                if (!names.Add(JsonStringDecoder.GetPropertyName(property)))
                 {
                     return AdapterDiagnostic.Error(
                         "scrypted.json.duplicate-property",
@@ -224,7 +224,7 @@ public sealed class ScryptedObjectsDetectedAdapter : ICameraEventAdapter
         if (element.ValueKind != JsonValueKind.String)
             return ValueResult<string>.Invalid(InvalidDiagnostic($"The {name} field must be a string.", path));
 
-        var value = element.GetString();
+        var value = JsonStringDecoder.GetString(element);
         if (string.IsNullOrWhiteSpace(value) || value.Length > MaxIdentifierLength || value.Any(char.IsControl))
         {
             return ValueResult<string>.Invalid(
@@ -300,7 +300,7 @@ public sealed class ScryptedObjectsDetectedAdapter : ICameraEventAdapter
                     InvalidDiagnostic($"The {name} field must contain only strings.", $"{path}[{index}]"));
             }
 
-            var value = item.GetString();
+            var value = JsonStringDecoder.GetString(item);
             if (string.IsNullOrWhiteSpace(value) || value.Length > MaxIdentifierLength || value.Any(char.IsControl))
             {
                 return ValueResult<IReadOnlyList<string>>.Invalid(
