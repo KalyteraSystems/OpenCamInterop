@@ -31,16 +31,19 @@ No camera, broker, network service, media file, or FFmpeg installation is needed
 1. Reduce the behavior to the smallest synthetic payload that still reproduces it.
 2. Put the payload under `fixtures/v1/frigate`, `fixtures/v1/scrypted`, or `fixtures/v1/onvif`.
 3. Add one stable case to `fixtures/v1/manifest.json` with its replay inputs, expected event types or diagnostic, and an honest sanitization note.
-4. Run EventLab verification.
-5. Regenerate the matrix to stdout and review it before replacing the checked-in file:
+4. Rebuild after source changes with `dotnet build OpenCamInterop.sln --configuration Release --no-restore`.
+5. Verify the changed cases and generate their matrix to stdout:
 
 ```console
-dotnet run --project tools/OpenCamInterop.Tool -- verify --manifest fixtures/v1/manifest.json --print-matrix
+dotnet run --project tools/OpenCamInterop.Tool --configuration Release --no-build --no-restore -- verify --manifest fixtures/v1/manifest.json --print-matrix
 ```
 
-6. Explain the distinct input behavior, expected normalization, and information removed during sanitization in the pull request.
+The `--print-matrix` form still validates the corpus and its expectations, but does not require the old checked-in matrix to match the changed manifest. Review its output before replacing `fixtures/v1/COMPATIBILITY.md`; save UTF-8 without a byte-order mark and with LF line endings.
 
-The manifest schema is available at `schemas/v1/fixture-manifest.schema.json`. CI rejects missing or orphaned payloads, duplicate IDs and properties, unsupported adapters, unsafe paths and links, oversized inputs, nondeterministic identities, expectation drift, and stale generated matrices.
+6. Run the same command without `--print-matrix` to verify the saved matrix, then run the tests.
+7. Explain the distinct input behavior, expected normalization, and information removed during sanitization in the pull request.
+
+The [fixture guide](fixtures/v1/README.md) describes the manifest fields and links to the [manifest schema](schemas/v1/fixture-manifest.schema.json). CI rejects missing or orphaned payloads, duplicate IDs and properties, unsupported adapters, unsafe paths and links, oversized inputs, nondeterministic identities, expectation drift, and stale generated matrices.
 
 ## Pull requests
 

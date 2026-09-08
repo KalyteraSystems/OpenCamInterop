@@ -1,10 +1,12 @@
 # OpenCamInterop fixture corpus v1
 
-These synthetic payloads exercise the public v1 adapter contract without requiring camera hardware. The versioned [`manifest.json`](manifest.json) is the executable inventory: the production EventLab verifier runs every case through its named adapter and verifies its ordered event types or stable error diagnostic. Successful cases are replayed twice to prove that their event identities are deterministic.
+These synthetic payloads exercise the public v1 adapter contract without requiring camera hardware. The versioned [`manifest.json`](manifest.json) is the executable inventory: the production EventLab verifier runs every case through its named adapter and verifies its ordered event types or stable error diagnostic. Successful cases are adapted twice with the same inputs and their `(source, id)` sequences are compared.
 
 The manifest is intentionally strict and bounded. It allows at most 256 cases and 64 KiB of manifest JSON, limits payloads to the adapters' 1 MiB ceiling, accepts only the `frigate`, `scrypted`, and `onvif` adapters, and requires relative canonical paths that stay below this directory without symbolic links. Scrypted cases additionally require an explicit synthetic `cameraId`. Every JSON or XML payload in the corpus must be represented by at least one case. `expectedEventTypes` and `expectedDiagnosticCode` are mutually exclusive. `expectedEventTypes` is the complete ordered sequence of zero through 256 recognized event types: repeated types are allowed, count and order must match, and `[]` expects success with no events or error diagnostics. Case order is also replay order, so `receivedAt` values must be nondecreasing UTC timestamps.
 
 [`COMPATIBILITY.md`](COMPATIBILITY.md) is generated deterministically from the manifest and checked in CI. Do not edit it by hand. It reports executable fixture behavior only; it is not a list of supported devices or vendors.
+
+The [manifest schema](../../schemas/v1/fixture-manifest.schema.json) defines the field shapes; the [event contract](../../docs/CONTRACT.md) lists recognized output types. Use the [Scrypted profile](../../docs/SCRYPTED.md) when choosing explicit camera identity and tracked-object inputs.
 
 Fixtures must be synthetic or irreversibly sanitized. Never include credentials, routable addresses, device serial numbers, faces, license plates, snapshots, thumbnails, local paths, or an export copied directly from a private installation. Never include a private installation URL; required protocol namespace URIs are acceptable. When a native field must exist solely to prove redaction, use a conspicuously fake sentinel that cannot be mistaken for captured data, and explain that choice in the case note.
 
@@ -13,7 +15,8 @@ To contribute a newly observed interoperability behavior:
 1. Reduce it to the smallest synthetic payload that still reproduces the behavior.
 2. Add the payload beneath its adapter directory.
 3. Register a stable case ID, replay inputs, one expected outcome, and a short sanitization note in `manifest.json`.
-4. Run `dotnet run --project tools/OpenCamInterop.Tool -- verify --manifest fixtures/v1/manifest.json --print-matrix` from the repository root and review the generated matrix before replacing `COMPATIBILITY.md`.
-5. State in the pull request which behavior is new; a device-list row by itself is not a compatibility test.
+4. Follow the [contribution guide](../../CONTRIBUTING.md#add-a-fixture-behavior) to rebuild, verify the changed expectations with `--print-matrix`, and review the generated matrix before replacing `COMPATIBILITY.md`.
+5. Run verification without `--print-matrix` to check the saved matrix, then run the tests.
+6. State in the pull request which behavior is new; a device-list row by itself is not a compatibility test.
 
 The corpus is not an ONVIF conformance suite and does not certify any camera, NVR, vendor, firmware, or deployment.

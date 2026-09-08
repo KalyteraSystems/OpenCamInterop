@@ -33,6 +33,8 @@ Only a motion topic in the standard ONVIF topic namespace with a recognized Conc
 
 `expectedEventTypes` describes the complete output sequence of zero through 256 recognized event types. Repeated types are retained, and both count and order must match. An empty array expects successful adaptation with no events and no error diagnostics; its matrix result is `no events`. Each case declares exactly one of `expectedEventTypes` or `expectedDiagnosticCode`. Existing nonempty expectations remain valid.
 
+The single-payload `inspect` command requires an emitted event. A successful adapter result containing zero events instead produces `adapter.no-events` and exit code `2` with empty stdout; use `verify` or `replay` with an empty event expectation to represent that outcome. The [EventLab guide](../tools/OpenCamInterop.Tool/README.md) documents source and release-bundle commands.
+
 Exit codes are stable within v1:
 
 | Code | Meaning |

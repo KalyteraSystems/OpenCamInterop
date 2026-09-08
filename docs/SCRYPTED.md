@@ -23,6 +23,8 @@ The JSON payload must contain an integer `timestamp` interpreted as Unix millise
 
 Each emitted observation requires `detections[].id`, `className`, and a finite `score` from 0 through 1. `id` is optional in Scrypted's broad public type, so payloads without it are valid Scrypted data but are outside this deterministic profile. Current Reolink and Amcrest examples above omit object ids; OpenCamInterop rejects those deliveries rather than manufacturing correlation. Duplicate ids in one payload are also rejected as ambiguous.
 
+With a valid timestamp, absent, null, or empty `detections` produces a successful adapter result with no events. A [fixture manifest](../fixtures/v1/README.md) can express that outcome as `"expectedEventTypes": []`; `verify` and `replay` accept it. The single-payload `inspect` command instead reports `adapter.no-events` and exits with code `2` because it requires output events.
+
 One accepted detection becomes one `com.kalyterasystems.opencaminterop.object.observed.v1` CloudEvent. Its time comes only from the payload timestamp. Its id is a deterministic length-delimited hash over the normalized allowlist—adapter identity, caller camera id, native object id, timestamp, class, score, and ordered zones. Distinct objects in the same payload remain distinct, while excluded private fields do not alter or feed the public event id.
 
 ## Privacy allowlist

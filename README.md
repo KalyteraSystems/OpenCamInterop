@@ -15,6 +15,9 @@ Each self-contained bundle includes EventLab, the synthetic fixture corpus, sche
 license, and notices. Compare the archive's SHA-256 digest with the digest shown on
 the GitHub release before extracting it.
 
+For guides absent from an extracted archive, follow the links in the
+[versioned source documentation](https://github.com/KalyteraSystems/OpenCamInterop/tree/v0.1.0-alpha.3).
+
 From an extracted Windows x64 bundle:
 
 ```powershell
@@ -43,8 +46,9 @@ Requirements: [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
 git clone https://github.com/KalyteraSystems/OpenCamInterop.git
 cd OpenCamInterop
 dotnet restore OpenCamInterop.sln --locked-mode
-dotnet run --project tools/OpenCamInterop.Tool -- verify --manifest fixtures/v1/manifest.json
-dotnet run --project tools/OpenCamInterop.Tool -- replay --manifest fixtures/v1/manifest.json --no-wait
+dotnet build OpenCamInterop.sln --configuration Release --no-restore
+dotnet run --project tools/OpenCamInterop.Tool --configuration Release --no-build --no-restore -- verify --manifest fixtures/v1/manifest.json
+dotnet run --project tools/OpenCamInterop.Tool --configuration Release --no-build --no-restore -- replay --manifest fixtures/v1/manifest.json --no-wait
 ```
 
 `verify` checks strict manifest parsing, complete fixture registration, expected event types or diagnostics, deterministic `(source, id)` pairs, and the generated [compatibility matrix](fixtures/v1/COMPATIBILITY.md). `replay` preflights the corpus and emits one structured CloudEvent per stdout line; omit `--no-wait` to honor relative `receivedAt` offsets. Human diagnostics stay on stderr.
@@ -52,26 +56,18 @@ dotnet run --project tools/OpenCamInterop.Tool -- replay --manifest fixtures/v1/
 Inspect one payload without adding it to the corpus:
 
 ```console
-dotnet run --project tools/OpenCamInterop.Tool -- inspect \
-  --adapter frigate \
-  --input fixtures/v1/frigate/object-new.json \
-  --source urn:opencaminterop:local:inspect
+dotnet run --project tools/OpenCamInterop.Tool --configuration Release --no-build --no-restore -- inspect --adapter frigate --input fixtures/v1/frigate/object-new.json --source urn:opencaminterop:local:inspect
 ```
 
 Scrypted observations require an explicit opaque camera id because the public payload's `sourceId` can identify a camera or a generating plug-in. They normalize only tracked detections with a native object `id`, and they become `object.observed.v1` rather than a guessed lifecycle transition:
 
 ```console
-dotnet run --project tools/OpenCamInterop.Tool -- inspect \
-  --adapter scrypted \
-  --input fixtures/v1/scrypted/objects-detected.json \
-  --source urn:opencaminterop:local:scrypted \
-  --camera-id synthetic-camera-alpha \
-  --channel fixture/camera/ObjectDetector
+dotnet run --project tools/OpenCamInterop.Tool --configuration Release --no-build --no-restore -- inspect --adapter scrypted --input fixtures/v1/scrypted/objects-detected.json --source urn:opencaminterop:local:scrypted --camera-id synthetic-camera-alpha --channel fixture/camera/ObjectDetector
 ```
 
 The [Scrypted profile](docs/SCRYPTED.md) records the upstream evidence, deterministic identity/time rules, deliberate rejection of id-less detections, and privacy allowlist.
 
-Use `--help` for the complete command and exit-code contract. The [EventLab guide](tools/OpenCamInterop.Tool/README.md) documents output and safety limits.
+These single-line commands work in PowerShell and Bash after the Release build above. Rebuild after changing source; `--no-build --no-restore` keeps build and restore output out of event stdout. Run `dotnet run --project tools/OpenCamInterop.Tool --configuration Release --no-build --no-restore -- --help` for the complete command and exit-code contract. The [EventLab guide](tools/OpenCamInterop.Tool/README.md) documents output and safety limits.
 
 ## Contribute one real behavior
 
