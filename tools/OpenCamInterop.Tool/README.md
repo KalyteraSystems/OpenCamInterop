@@ -11,7 +11,7 @@ dotnet run --project tools/OpenCamInterop.Tool -- verify --manifest fixtures/v1/
 dotnet run --project tools/OpenCamInterop.Tool -- replay --manifest fixtures/v1/manifest.json --no-wait
 ```
 
-`inspect` writes one structured CloudEvent JSON object to stdout, or a CloudEvents batch when a single ONVIF payload contains multiple notifications. Adapter warnings and errors use stable lines on stderr. `replay` preflights the corpus sequence, then writes one structured CloudEvent JSON object per line at the relative `receivedAt` offsets; `--no-wait` emits the same NDJSON immediately in manifest order. The current checked-in manifest is a corpus inventory with equal timestamps, not a claim that its unrelated cases form one real-world trace.
+`inspect` writes one structured CloudEvent JSON object to stdout, or a CloudEvents batch when a single payload produces multiple events. Adapter warnings and errors use stable lines on stderr. `replay` preflights the corpus sequence, then writes one structured CloudEvent JSON object per line at the relative `receivedAt` offsets; `--no-wait` emits the same NDJSON immediately in manifest order. The current checked-in manifest is a corpus inventory with equal timestamps, not a claim that its unrelated cases form one real-world trace.
 
 `verify` strictly validates the manifest and corpus, checks expected event types or diagnostic codes, and reruns successful cases to compare their CloudEvent `(source,id)` pairs. It also checks that `COMPATIBILITY.md` is the deterministic projection of the manifest. To reproduce that projection without modifying files:
 
@@ -20,6 +20,8 @@ dotnet run --project tools/OpenCamInterop.Tool -- verify --manifest fixtures/v1/
 ```
 
 Redirect stdout to replace the matrix after reviewing a manifest change. Human status remains on stderr, so stdout contains only the generated Markdown.
+
+`expectedEventTypes` is an ordered sequence of zero through 256 recognized types, including repeats. Both count and order must match the emitted events. Use `[]` for a successful observation with no events; verification reports `no events` in the matrix and replay writes no event lines for that case. Event and diagnostic expectations remain mutually exclusive.
 
 Payloads are capped at 1 MiB, manifests at 64 KiB and 256 cases, replay output at 4 MiB, and waited replay at ten minutes. Manifest payload paths must remain beneath the manifest directory, use the matching adapter directory and extension, and contain no symbolic links. Manifest sources must be opaque absolute URNs. Scrypted `inspect` requires `--camera-id`; `--channel` can carry the configured MQTT path ending in `/ObjectDetector` and is never used as camera identity.
 

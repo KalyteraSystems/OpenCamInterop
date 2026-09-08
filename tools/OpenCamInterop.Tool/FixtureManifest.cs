@@ -181,14 +181,12 @@ internal static class FixtureManifestLoader
             IReadOnlyList<string>? expectedEventTypes = null;
             if (hasEventTypes)
             {
-                if (item.ExpectedEventTypes!.Count == 0 ||
-                    item.ExpectedEventTypes.Count > StructuredCloudEventJson.MaxBatchEvents ||
-                    item.ExpectedEventTypes.Any(type => type is null || !KnownEventTypes.Contains(type)) ||
-                    item.ExpectedEventTypes.Distinct(StringComparer.Ordinal).Count() != item.ExpectedEventTypes.Count)
+                if (item.ExpectedEventTypes!.Count > StructuredCloudEventJson.MaxBatchEvents ||
+                    item.ExpectedEventTypes.Any(type => type is null || !KnownEventTypes.Contains(type)))
                 {
                     throw new EventLabInputException(
                         "manifest.event-types",
-                        "expectedEventTypes must contain from 1 through 256 recognized v1 event types.");
+                        "expectedEventTypes must contain from 0 through 256 recognized v1 event types in output order.");
                 }
                 expectedEventTypes = item.ExpectedEventTypes.ToArray();
             }

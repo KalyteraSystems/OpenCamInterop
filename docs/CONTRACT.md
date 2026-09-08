@@ -31,6 +31,8 @@ Only a motion topic in the standard ONVIF topic namespace with a recognized Conc
 
 `inspect` adapts one local payload. `verify` loads the strict v1 fixture manifest, runs every registered case, evaluates its expected ordered event types or diagnostic, repeats successful adaptations to compare identities, and checks the generated matrix. `replay` preflights the same corpus and emits structured CloudEvents NDJSON in manifest order, optionally honoring relative delivery offsets.
 
+`expectedEventTypes` describes the complete output sequence of zero through 256 recognized event types. Repeated types are retained, and both count and order must match. An empty array expects successful adaptation with no events and no error diagnostics; its matrix result is `no events`. Each case declares exactly one of `expectedEventTypes` or `expectedDiagnosticCode`. Existing nonempty expectations remain valid.
+
 Exit codes are stable within v1:
 
 | Code | Meaning |
