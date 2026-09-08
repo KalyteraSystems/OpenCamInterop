@@ -10,7 +10,7 @@ The project opens no network connections, discovers no devices, stores no creden
 ## Try a release bundle without installing .NET
 
 Download and extract the archive for your platform from
-[`v0.1.0-alpha.2`](https://github.com/KalyteraSystems/OpenCamInterop/releases/tag/v0.1.0-alpha.2).
+[`v0.1.0-alpha.3`](https://github.com/KalyteraSystems/OpenCamInterop/releases/tag/v0.1.0-alpha.3).
 Each self-contained bundle includes EventLab, the synthetic fixture corpus, schemas,
 license, and notices. Compare the archive's SHA-256 digest with the digest shown on
 the GitHub release before extracting it.

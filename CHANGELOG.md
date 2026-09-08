@@ -2,9 +2,12 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.3 - 2026-09-08
+
 ### Fixed
 
 - EventLab fixture expectations now support ordered repeated event types and successful zero-event outputs, while retaining the 256-event bound and mutually exclusive diagnostic expectations
+- Frigate and Scrypted adapters return stable invalid-JSON diagnostics when decoded fields or property names contain malformed Unicode
 
 ## 0.1.0-alpha.2 - 2026-09-07
 

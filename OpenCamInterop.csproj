@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
     <PackageId>OpenCamInterop</PackageId>
-    <Version>0.1.0-alpha.2</Version>
+    <Version>0.1.0-alpha.3</Version>
     <Authors>Kalytera Systems contributors</Authors>
     <Description>CloudEvents-compatible camera event models and safe adapters for local interoperability.</Description>
     <RepositoryUrl>https://github.com/KalyteraSystems/OpenCamInterop</RepositoryUrl>
