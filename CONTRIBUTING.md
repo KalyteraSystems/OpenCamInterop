@@ -29,7 +29,7 @@ No camera, broker, network service, media file, or FFmpeg installation is needed
 ## Add a fixture behavior
 
 1. Reduce the behavior to the smallest synthetic payload that still reproduces it.
-2. Put the payload under `fixtures/v1/frigate` or `fixtures/v1/onvif`.
+2. Put the payload under `fixtures/v1/frigate`, `fixtures/v1/scrypted`, or `fixtures/v1/onvif`.
 3. Add one stable case to `fixtures/v1/manifest.json` with its replay inputs, expected event types or diagnostic, and an honest sanitization note.
 4. Run EventLab verification.
 5. Regenerate the matrix to stdout and review it before replacing the checked-in file:

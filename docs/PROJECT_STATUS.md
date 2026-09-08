@@ -1,6 +1,6 @@
 # Project status and evidence
 
-This page keeps project health separate from promotional activity. Counts describe checked-in evidence as of 2026-09-07 and should change only when the underlying evidence changes.
+This page keeps project health separate from promotional activity. Counts describe checked-in evidence as of 2026-09-08 and should change only when the underlying evidence changes.
 
 ## Baseline
 
@@ -13,10 +13,10 @@ This page keeps project health separate from promotional activity. Counts descri
 | Independent downstream consumers | 0 | A non-Kalytera repository that runs or references OpenCamInterop in real CI or code |
 | Non-maintainer behavior contributors | 0 | A unique person outside maintenance whose substantive behavior case was merged |
 | First-party consumers | 1 | IPCamLapse uses the library source directly |
-| Standalone releases | 2 | A tagged release in the standalone repository |
+| Standalone releases | 3 | A tagged release in the standalone repository |
 | Known privacy incidents | 0 | A fixture or report requiring removal of private data |
 
-Latest release evidence: [`v0.1.0-alpha.2`](https://github.com/KalyteraSystems/OpenCamInterop/releases/tag/v0.1.0-alpha.2).
+Latest release evidence: [`v0.1.0-alpha.3`](https://github.com/KalyteraSystems/OpenCamInterop/releases/tag/v0.1.0-alpha.3). This maintenance release repairs malformed-Unicode diagnostics and ordered fixture event-count expectations; it adds no external behavior or adoption evidence.
 
 All current fixtures are synthetic. They establish parser and contract behavior only, not physical-device coverage, firmware support, vendor compatibility, certification, or adoption.
 
