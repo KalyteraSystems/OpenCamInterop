@@ -187,7 +187,7 @@ public sealed class FrigateEventAdapter : ICameraEventAdapter
         if (element.ValueKind != JsonValueKind.String)
             return ValueResult<string>.Invalid(InvalidDiagnostic($"The {name} field must be a string.", path));
 
-        var value = element.GetString();
+        var value = JsonStringDecoder.GetString(element);
         if (string.IsNullOrWhiteSpace(value))
             return ValueResult<string>.Invalid(InvalidDiagnostic($"The {name} field cannot be empty.", path));
         if (value.Length > MaxIdentifierLength || value.Any(char.IsControl))
@@ -289,7 +289,7 @@ public sealed class FrigateEventAdapter : ICameraEventAdapter
                     InvalidDiagnostic($"The {name} field must contain only strings.", $"{path}[{index}]"));
             }
 
-            var value = item.GetString();
+            var value = JsonStringDecoder.GetString(item);
             if (string.IsNullOrWhiteSpace(value) ||
                 value.Length > MaxIdentifierLength ||
                 value.Any(char.IsControl))
@@ -310,7 +310,7 @@ public sealed class FrigateEventAdapter : ICameraEventAdapter
     private static bool HasDuplicateProperties(JsonElement element)
     {
         var names = new HashSet<string>(StringComparer.Ordinal);
-        return element.EnumerateObject().Any(property => !names.Add(property.Name));
+        return element.EnumerateObject().Any(property => !names.Add(JsonStringDecoder.GetPropertyName(property)));
     }
 
     private static bool IsJsonContentType(string contentType)
