@@ -20,7 +20,9 @@ internal static class CompatibilityMatrix
         foreach (var fixture in manifest.Cases)
         {
             var outcome = fixture.ExpectedEventTypes is { } eventTypes
-                ? string.Join("<br>", eventTypes.Select(item => $"event `{EscapeCell(item)}`"))
+                ? eventTypes.Count == 0
+                    ? "no events"
+                    : string.Join("<br>", eventTypes.Select(item => $"event `{EscapeCell(item)}`"))
                 : $"diagnostic `{EscapeCell(fixture.ExpectedDiagnosticCode!)}`";
             builder.Append("| `").Append(EscapeCell(fixture.Id)).Append("` | `")
                 .Append(EscapeCell(fixture.Adapter)).Append("` | [`")

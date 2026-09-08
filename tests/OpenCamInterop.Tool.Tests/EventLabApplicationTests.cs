@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Xml.Linq;
 using OpenCamInterop;
 using OpenCamInterop.EventLab;
 
@@ -349,12 +350,186 @@ public sealed class EventLabApplicationTests
             ids);
     }
 
-    private static async Task<(int ExitCode, string Output, string Error)> VerifyAsync(string manifestPath)
+    [Fact]
+    public async Task RepeatedObservationExpectationsVerifyAndReplayDistinctObjectsDeterministically()
+    {
+        using var corpus = TemporaryCorpus.CreatePayload(
+            "scrypted",
+            ScryptedPayload(2),
+            new[] { CameraEventTypes.ObjectObserved, CameraEventTypes.ObjectObserved });
+
+        var verification = await VerifyAsync(corpus.ManifestPath, printMatrix: true);
+
+        Assert.Equal(EventLabExitCodes.Success, verification.ExitCode);
+        Assert.Contains(
+            $"event `{CameraEventTypes.ObjectObserved}`<br>event `{CameraEventTypes.ObjectObserved}`",
+            verification.Output,
+            StringComparison.Ordinal);
+        File.WriteAllText(corpus.PayloadPath("COMPATIBILITY.md"), verification.Output);
+        Assert.Equal(EventLabExitCodes.Success, (await VerifyAsync(corpus.ManifestPath)).ExitCode);
+
+        var firstReplay = await ReplayAsync(corpus.ManifestPath);
+        var secondReplay = await ReplayAsync(corpus.ManifestPath);
+        Assert.Equal(EventLabExitCodes.Success, firstReplay.ExitCode);
+        Assert.Equal(EventLabExitCodes.Success, secondReplay.ExitCode);
+        Assert.Equal(firstReplay.Output, secondReplay.Output);
+        var events = firstReplay.Output.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
+            .Select(json => StructuredCloudEventJson.Deserialize(Encoding.UTF8.GetBytes(json)))
+            .ToArray();
+        Assert.Equal(new[] { "synthetic-track-0", "synthetic-track-1" },
+            events.Select(item => ((JsonElement)item.Data!).GetProperty("objectId").GetString()));
+        Assert.NotEqual(events[0].Id, events[1].Id);
+    }
+
+    [Theory]
+    [InlineData("{\"timestamp\":1788516930123,\"detections\":[]}")]
+    [InlineData("{\"timestamp\":1788516930123,\"detections\":null}")]
+    [InlineData("{\"timestamp\":1788516930123}")]
+    public async Task EmptyObservationExpectationsVerifyAndReplayWithoutEvents(string payload)
+    {
+        using var corpus = TemporaryCorpus.CreatePayload("scrypted", payload, Array.Empty<string>());
+
+        var verification = await VerifyAsync(corpus.ManifestPath, printMatrix: true);
+        var replay = await ReplayAsync(corpus.ManifestPath);
+
+        Assert.Equal(EventLabExitCodes.Success, verification.ExitCode);
+        Assert.Contains("| no events |", verification.Output, StringComparison.Ordinal);
+        Assert.Equal(EventLabExitCodes.Success, replay.ExitCode);
+        Assert.Equal(string.Empty, replay.Output);
+        Assert.Contains("1 cases produced 0 events.", replay.Error, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(3)]
+    public async Task ObservationExpectationRejectsTheWrongEventCount(int expectedCount)
+    {
+        using var corpus = TemporaryCorpus.CreatePayload(
+            "scrypted", ScryptedPayload(2),
+            Enumerable.Repeat(CameraEventTypes.ObjectObserved, expectedCount).ToArray());
+
+        var verification = await VerifyAsync(corpus.ManifestPath, printMatrix: true);
+        var replay = await ReplayAsync(corpus.ManifestPath);
+
+        Assert.Equal(EventLabExitCodes.ExpectationFailed, verification.ExitCode);
+        Assert.Contains("error [expectation.events]", verification.Error, StringComparison.Ordinal);
+        Assert.Equal(string.Empty, verification.Output);
+        Assert.Equal(EventLabExitCodes.ExpectationFailed, replay.ExitCode);
+        Assert.Equal(string.Empty, replay.Output);
+    }
+
+    [Fact]
+    public async Task RepeatedEventExpectationsPreserveOrderingWithinOnePayload()
+    {
+        var envelope = XDocument.Load(FixturePath("onvif", "cell-motion-changed.xml"));
+        XNamespace notificationNamespace = "http://docs.oasis-open.org/wsn/b-2";
+        XNamespace schemaNamespace = "http://www.onvif.org/ver10/schema";
+        var notify = envelope.Descendants(notificationNamespace + "Notify").Single();
+        var original = notify.Element(notificationNamespace + "NotificationMessage")!;
+        var initialized = new XElement(original);
+        initialized.Descendants(schemaNamespace + "Message").Single()
+            .SetAttributeValue("PropertyOperation", "Initialized");
+        var laterChange = new XElement(original);
+        laterChange.Descendants(schemaNamespace + "Message").Single()
+            .SetAttributeValue("UtcTime", "2026-09-04T10:15:32Z");
+        notify.Add(initialized, laterChange);
+        using var ordered = TemporaryCorpus.CreatePayload("onvif", envelope.ToString(), new[]
+        {
+            CameraEventTypes.SignalChanged, CameraEventTypes.OnvifNotification, CameraEventTypes.SignalChanged
+        });
+        using var reordered = TemporaryCorpus.CreatePayload("onvif", envelope.ToString(), new[]
+        {
+            CameraEventTypes.SignalChanged, CameraEventTypes.SignalChanged, CameraEventTypes.OnvifNotification
+        });
+
+        Assert.Equal(EventLabExitCodes.Success,
+            (await VerifyAsync(ordered.ManifestPath, printMatrix: true)).ExitCode);
+        var wrongOrder = await VerifyAsync(reordered.ManifestPath, printMatrix: true);
+        Assert.Equal(EventLabExitCodes.ExpectationFailed, wrongOrder.ExitCode);
+        Assert.Contains("error [expectation.events]", wrongOrder.Error, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(256, EventLabExitCodes.Success)]
+    [InlineData(257, EventLabExitCodes.InvalidInput)]
+    public async Task ObservationExpectationEnforcesTheMaximumEventCount(int expectedCount, int expectedExitCode)
+    {
+        using var corpus = TemporaryCorpus.CreatePayload(
+            "scrypted", ScryptedPayload(256),
+            Enumerable.Repeat(CameraEventTypes.ObjectObserved, expectedCount).ToArray());
+
+        var result = await VerifyAsync(corpus.ManifestPath, printMatrix: true);
+
+        Assert.Equal(expectedExitCode, result.ExitCode);
+        if (expectedExitCode == EventLabExitCodes.InvalidInput)
+            Assert.Contains("error [manifest.event-types]", result.Error, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task EmptyEventExpectationCannotAlsoDeclareADiagnostic()
+    {
+        using var corpus = TemporaryCorpus.CreatePayload("scrypted", ScryptedPayload(0), Array.Empty<string>());
+        corpus.RewriteManifest(json => json.Replace(
+            "\"expectedEventTypes\":[]",
+            "\"expectedEventTypes\":[],\"expectedDiagnosticCode\":\"scrypted.field.required\"",
+            StringComparison.Ordinal));
+
+        var result = await VerifyAsync(corpus.ManifestPath, printMatrix: true);
+
+        Assert.Equal(EventLabExitCodes.InvalidInput, result.ExitCode);
+        Assert.Contains("error [manifest.expectation]", result.Error, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PublishedManifestSchemaAllowsBoundedOrderedEventSequences()
+    {
+        using var schema = JsonDocument.Parse(File.ReadAllText(Path.Combine(
+            AppContext.BaseDirectory, "schemas", "v1", "fixture-manifest.schema.json")));
+        var eventTypes = schema.RootElement.GetProperty("$defs").GetProperty("case")
+            .GetProperty("properties").GetProperty("expectedEventTypes");
+
+        Assert.Equal(0, eventTypes.GetProperty("minItems").GetInt32());
+        Assert.Equal(256, eventTypes.GetProperty("maxItems").GetInt32());
+        Assert.False(eventTypes.TryGetProperty("uniqueItems", out var uniqueItems) && uniqueItems.GetBoolean());
+        Assert.Contains(CameraEventTypes.ObjectObserved,
+            eventTypes.GetProperty("items").GetProperty("enum").EnumerateArray().Select(item => item.GetString()));
+    }
+
+    private static string ScryptedPayload(int detectionCount)
+    {
+        return JsonSerializer.Serialize(new
+        {
+            timestamp = 1788516930123,
+            detections = Enumerable.Range(0, detectionCount).Select(index => new
+            {
+                id = $"synthetic-track-{index}",
+                className = "person",
+                score = 0.9
+            })
+        });
+    }
+
+    private static async Task<(int ExitCode, string Output, string Error)> ReplayAsync(string manifestPath)
     {
         var output = new StringWriter(CultureInfo.InvariantCulture);
         var error = new StringWriter(CultureInfo.InvariantCulture);
         var application = new EventLabApplication(output, error, new RecordingReplayClock());
-        var exitCode = await application.RunAsync(new[] { "verify", "--manifest", manifestPath });
+        var exitCode = await application.RunAsync(new[] { "replay", "--manifest", manifestPath, "--no-wait" });
+        return (exitCode, output.ToString(), error.ToString());
+    }
+
+    private static async Task<(int ExitCode, string Output, string Error)> VerifyAsync(
+        string manifestPath,
+        bool printMatrix = false)
+    {
+        var output = new StringWriter(CultureInfo.InvariantCulture);
+        var error = new StringWriter(CultureInfo.InvariantCulture);
+        var application = new EventLabApplication(output, error, new RecordingReplayClock());
+        var arguments = new List<string> { "verify", "--manifest", manifestPath };
+        if (printMatrix)
+            arguments.Add("--print-matrix");
+        var exitCode = await application.RunAsync(arguments);
         return (exitCode, output.ToString(), error.ToString());
     }
 
@@ -395,6 +570,39 @@ public sealed class EventLabApplicationTests
         internal void RewriteManifest(Func<string, string> transform)
         {
             File.WriteAllText(ManifestPath, transform(File.ReadAllText(ManifestPath)));
+        }
+
+        internal static TemporaryCorpus CreatePayload(
+            string adapter,
+            string payloadContent,
+            IReadOnlyList<string> expectedEventTypes)
+        {
+            var directory = Path.Combine(Path.GetTempPath(), $"opencaminterop-tool-tests-{Guid.NewGuid():N}");
+            System.IO.Directory.CreateDirectory(Path.Combine(directory, adapter));
+            var payload = $"{adapter}/observations.{(adapter == "onvif" ? "xml" : "json")}";
+            File.WriteAllText(Path.Combine(directory, payload), payloadContent);
+            var fixture = new Dictionary<string, object>
+            {
+                ["id"] = "observations",
+                ["adapter"] = adapter,
+                ["payload"] = payload,
+                ["source"] = "urn:opencaminterop:test:observations",
+                ["channel"] = adapter == "onvif" ? "onvif/notifications" : "ObjectDetector",
+                ["contentType"] = adapter == "onvif" ? "application/soap+xml" : "application/json",
+                ["receivedAt"] = "2026-09-04T10:30:00Z",
+                ["expectedEventTypes"] = expectedEventTypes,
+                ["note"] = "Synthetic event cardinality test; no external compatibility or adoption claim."
+            };
+            if (adapter == "scrypted")
+                fixture["cameraId"] = "synthetic-camera";
+            var manifestPath = Path.Combine(directory, "manifest.json");
+            File.WriteAllText(manifestPath, JsonSerializer.Serialize(new
+            {
+                schemaVersion = 1,
+                maxPayloadBytes = 1024 * 1024,
+                cases = new[] { fixture }
+            }));
+            return new TemporaryCorpus(directory, manifestPath);
         }
 
         internal static TemporaryCorpus Create(

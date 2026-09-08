@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- EventLab fixture expectations now support ordered repeated event types and successful zero-event outputs, while retaining the 256-event bound and mutually exclusive diagnostic expectations
+
 ## 0.1.0-alpha.2 - 2026-09-07
 
 ### Added
