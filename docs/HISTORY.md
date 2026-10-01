@@ -23,3 +23,11 @@ The source milestones are:
 
 The original pull-request discussions and checks remain in the IPCamLapse
 repository; the relevant source history continues here.
+
+IPCamLapse still builds its own embedded copy under `OpenCamInterop/`. That copy
+is a reviewed snapshot, not a mirror: it is refreshed only by a separate
+IPCamLapse integration change, and on 2026-09-30 it still declared
+`0.1.0-alpha.1` without the Scrypted adapter or the alpha.3 fixture
+expectations. Standalone releases and fixtures land here first; IPCamLapse's
+[integration notes](https://github.com/KalyteraSystems/IPCamLapse/blob/main/docs/OPEN_CAM_INTEROP.md)
+describe the embedded copy.

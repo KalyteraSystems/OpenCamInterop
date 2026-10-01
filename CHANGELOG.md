@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Test projects use Microsoft.NET.Test.Sdk 18.10.1 (#11); the library, EventLab, schemas, and fixture corpus are unchanged
+
 ## 0.1.0-alpha.3 - 2026-09-08
 
 ### Fixed

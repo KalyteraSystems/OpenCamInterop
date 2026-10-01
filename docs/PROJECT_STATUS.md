@@ -1,6 +1,6 @@
 # Project status and evidence
 
-This page keeps project health separate from promotional activity. Counts describe checked-in evidence as of 2026-09-08 and should change only when the underlying evidence changes.
+This page keeps project health separate from promotional activity. Counts describe checked-in evidence as of 2026-09-08, re-verified unchanged on 2026-09-30, and should change only when the underlying evidence changes.
 
 ## Baseline
 
@@ -19,6 +19,16 @@ This page keeps project health separate from promotional activity. Counts descri
 Latest release evidence: [`v0.1.0-alpha.3`](https://github.com/KalyteraSystems/OpenCamInterop/releases/tag/v0.1.0-alpha.3). This maintenance release repairs malformed-Unicode diagnostics and ordered fixture event-count expectations; it adds no external behavior or adoption evidence.
 
 All current fixtures are synthetic. They establish parser and contract behavior only, not physical-device coverage, firmware support, vendor compatibility, certification, or adoption.
+
+The first-party consumer, IPCamLapse, builds an older embedded source snapshot (`0.1.0-alpha.1`, no Scrypted adapter); see the [project history](HISTORY.md).
+
+## Open work
+
+Planned work is tracked in issues, not in this page:
+
+- [#1](https://github.com/KalyteraSystems/OpenCamInterop/issues/1): named scenario grouping and targeted `replay --scenario` / `--case` selection.
+- [#2](https://github.com/KalyteraSystems/OpenCamInterop/issues/2): assert the complete canonical CloudEvent output of each fixture case. `verify` still checks only ordered event types, diagnostics, and `(source, id)` determinism; [#9](https://github.com/KalyteraSystems/OpenCamInterop/pull/9) added repeated and zero-event type expectations and deliberately left complete event-data assertions to #2.
+- [#3](https://github.com/KalyteraSystems/OpenCamInterop/issues/3): the first externally observed behavior contribution.
 
 ## What counts
 
