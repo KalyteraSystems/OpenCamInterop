@@ -26,12 +26,8 @@ changes. Record what ran in the pull request; a hosted check that did not start 
 
 - Claude Code works on `claude/<topic>` and Codex on `codex/<topic>`; both prefixes are valid for topic branches
   and pull requests. Never push to another agent's branch or to `dependabot/*`, and never force-push.
-- Work in your own worktree, push your branch before you stop and hand off in a pull request. The Claude
-  coordinator, the Claude Code session that coordinates the agents, merges reviewed Claude pull requests; the owner
-  may merge any. Lanes (owner, 2026-10-08): Claude Code does all coding and merges; Codex reviews and tests.
-  Codex writes no library code, opens no product pull requests and merges nothing: its findings go to the owning
-  issue for Claude Code to implement, and test evidence or tooling it must commit goes through a `codex/<topic>`
-  pull request that the coordinator reviews and merges.
+- Work in your own worktree, push your branch before you stop and hand off in a pull request. Lanes, merges and
+  coordination for every agent follow the maintainers' shared agent rules ("Agents on this host" in KalyteraOS).
 - Pull requests merge with a merge commit (owner decision 2026-10-01). Hand over
   `gh pr merge <number> -R KalyteraSystems/OpenCamInterop --merge --match-head-commit <head-sha>`; never
   `--squash` or `--rebase`.
