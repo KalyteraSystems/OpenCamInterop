@@ -27,7 +27,10 @@ changes. Record what ran in the pull request; a hosted check that did not start 
 - Claude Code works on `claude/<topic>` and Codex on `codex/<topic>`; both prefixes are valid for topic branches
   and pull requests. Never push to another agent's branch or to `dependabot/*`, and never force-push.
 - Work in your own worktree, push your branch before you stop and hand off in a pull request. Lanes, merges and
-  coordination for every agent follow the maintainers' shared agent rules ("Agents on this host" in KalyteraOS).
+  coordination for every agent follow the maintainers' shared agent rules
+  ([Agents on this host](https://github.com/KalyteraSystems/KalyteraOS/blob/main/host/dev/README.md#agents-on-this-host) in KalyteraOS).
+  Cross-repository claims and handoffs go on the [coordination board](https://github.com/KalyteraSystems/KalyteraOS/issues/247) (the pinned
+  KalyteraOS issue titled "Coordination board"; #18 before 2026-10-21).
 - Pull requests merge with a merge commit (owner decision 2026-10-01). Hand over
   `gh pr merge <number> -R KalyteraSystems/OpenCamInterop --merge --match-head-commit <head-sha>`; never
   `--squash` or `--rebase`.
